@@ -11,4 +11,8 @@
     <PackageReference Include="NPOI" Version="2.7.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Endpoints\" />
+  </ItemGroup>
+
 </Project>

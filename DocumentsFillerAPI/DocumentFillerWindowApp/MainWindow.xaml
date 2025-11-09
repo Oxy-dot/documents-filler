@@ -1,0 +1,44 @@
+﻿<Window x:Class="DocumentFillerWindowApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DocumentFillerWindowApp"
+        xmlns:myControls="clr-namespace:DocumentFillerWindowApp.UserControls"
+        Style="{StaticResource MaterialDesignWindow}"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <StackPanel Orientation="Horizontal">
+        <DockPanel>
+            <materialDesign:DrawerHost Name="NavDrawer"
+                               IsLeftDrawerOpen="True"
+                               OpenMode="Standard"
+                               DockPanel.Dock="Left">
+                <materialDesign:DrawerHost.LeftDrawerContent>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Vertical" Grid.Row="0">
+                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Преподаватели</Button>
+                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Должности</Button>
+                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Кафедры</Button>
+                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Штатное расписание</Button>
+                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Ставки преподавателей</Button>
+                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Учет</Button>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1"/>
+                        <StackPanel Orientation="Vertical" Grid.Row="2">
+                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">История файлов</Button>
+                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Добавить новый файл</Button>
+                        </StackPanel>
+                    </Grid>
+                </materialDesign:DrawerHost.LeftDrawerContent>
+            </materialDesign:DrawerHost>
+        </DockPanel>
+        <myControls:TeachersControl/>
+    </StackPanel>
+</Window>

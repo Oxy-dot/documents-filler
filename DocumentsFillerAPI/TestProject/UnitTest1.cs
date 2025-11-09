@@ -32,6 +32,9 @@ namespace TestProject
 				FirstAcademicYear = 2024,
 				SecondAcademicYear = 2025,
 				DepartmentName = "хря",
+				MainStaff = new(),
+				InternalStaff = new(),
+				ExternalStaff = new(),
 			};
 
 			var workBook = new ExcelFilesGenerator().GenerateStaffingTemplate(testInfo);
@@ -40,6 +43,32 @@ namespace TestProject
 			{
 				workBook.Write(fs);
 				//fs.Flush();
+				fs.Close();
+			}
+		}
+
+		[Test]
+		public void Test3()
+		{
+			var testInfo = new ExcelFilesGenerator.ServiceMemoInputData()
+			{
+				FirstAcademicYear = 2024,
+				SecondAcademicYear = 2025,
+				ProtocolDateTime = DateTime.Now,
+				ProtocolNumber = 1,
+				StudyPeriodDateEnd = new DateTime(2025, 01, 01),
+				StudyPeriodDateStart = new DateTime(2024, 01, 01),
+				MainStaff = new(),
+				InternalStaff = new(),
+				ExternalStaff = new(),
+				HourlyWorkers = new()
+			};
+
+			var workBook = new ExcelFilesGenerator().GenerateServiceMemo(testInfo);
+			File.Delete("./serviceMemoTemplate.xlsx");
+			using (FileStream fs = new FileStream("./serviceMemoTemplate.xlsx", FileMode.Create))
+			{
+				workBook.Write(fs);
 				fs.Close();
 			}
 		}

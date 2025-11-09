@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentsFillerAPI", "Docum
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject", "TestProject\TestProject.csproj", "{EDD039D6-191F-434F-A2E8-810C4C68D42F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentFillerWindowApp", "DocumentFillerWindowApp\DocumentFillerWindowApp.csproj", "{19E3C93C-AF57-4CE9-805C-F340CD6470D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{EDD039D6-191F-434F-A2E8-810C4C68D42F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDD039D6-191F-434F-A2E8-810C4C68D42F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDD039D6-191F-434F-A2E8-810C4C68D42F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19E3C93C-AF57-4CE9-805C-F340CD6470D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19E3C93C-AF57-4CE9-805C-F340CD6470D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19E3C93C-AF57-4CE9-805C-F340CD6470D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19E3C93C-AF57-4CE9-805C-F340CD6470D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

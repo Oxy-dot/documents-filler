@@ -24,12 +24,12 @@ namespace DocumentsFillerAPI.ExcelWorker
 
 		public static string CustomTrim(this string text) => text.Trim().Replace("\r", "").Replace("\n", "").Replace(" ", "").ToLower();
 
-		public static ICellStyle GenerateDefaultStyle(this IWorkbook workbook, bool isBold, bool isSmall, bool offBorder = false)
+		public static ICellStyle GenerateDefaultStyle(this IWorkbook workbook, bool isBold, FontHeight fontHeight, bool offBorder = false, bool textWrap = true, HorizontalAlignment horizontalAligment = HorizontalAlignment.Center, bool isCenterVerticalAlignment = true)
 		{
 			var newStyle = workbook.CreateCellStyle();
-			newStyle.Alignment = HorizontalAlignment.Center;
-			newStyle.VerticalAlignment = VerticalAlignment.Center;
-			newStyle.WrapText = true;
+			newStyle.Alignment = horizontalAligment;
+			newStyle.VerticalAlignment = isCenterVerticalAlignment ? VerticalAlignment.Center : VerticalAlignment.Justify;
+			newStyle.WrapText = textWrap;
 			if (!offBorder)
 			{
 				newStyle.BorderLeft = BorderStyle.Thin;
@@ -37,11 +37,13 @@ namespace DocumentsFillerAPI.ExcelWorker
 				newStyle.BorderTop = BorderStyle.Thin;
 				newStyle.BorderBottom = BorderStyle.Thin;
 			}
+
 			IFont font = workbook.CreateFont();
 			font.FontName = "Times New Roman";
-			font.FontHeight = (isSmall ? 10 : 12) * 20;
+			font.FontHeight = (fontHeight == FontHeight.Default ? 12 : fontHeight == FontHeight.Small ? 10 : 9) * 20;
 			font.IsBold = isBold;
 			newStyle.SetFont(font);
+
 			return newStyle;
 		}
 
@@ -60,6 +62,22 @@ namespace DocumentsFillerAPI.ExcelWorker
 			cell.CellStyle.BorderTop = BorderStyle.Medium;
 			cell.CellStyle.BorderBottom = BorderStyle.Medium;
 			return cell;
+		}
+
+		public enum FontHeight
+		{
+			/// <summary>
+			/// 12
+			/// </summary>
+			Default, // 12
+			/// <summary>
+			/// 10
+			/// </summary>
+			Small, // 10
+			/// <summary>
+			/// 9
+			/// </summary>
+			VerySmall, //9
 		}
 	}
 }
