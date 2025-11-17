@@ -1,14 +1,17 @@
 ﻿using DocumentsFillerAPI.Controllers;
 using DocumentsFillerAPI.Structures;
 using Npgsql;
+using NPOI.SS.Formula.Functions;
+using NPOI.XSSF.UserModel;
+using System.Threading.Tasks;
 
 namespace DocumentsFillerAPI.Providers
 {
 	public class AcademicTitlePostgreProvider
 	{
-		private string connectionString = "";
+		private string connectionString = "Host=localhost;Port=5432;Database=document_filler;Username=postgres;Password=root";
 
-		public async Task<ResultMessage> Delete(IEnumerable<Guid> titles)
+		public async Task<(List<AcademicTitleStruct> Inserted, List<string> NotInserted, ResultMessage Result)> Insert(IEnumerable<AcademicTitleStruct> titles)
 		{
 			try
 			{
@@ -16,64 +19,87 @@ namespace DocumentsFillerAPI.Providers
 
 				string sql =
 					$@"
-					UPDATE public.academic_title
-					SET is_deleted = True
-					WHERE id IN ('{string.Join("','", titles)}')
+					INSERT INTO public.academic_title(id, name)
+					VALUES (@id, @name, @short_name) RETURNING *;
 					";
+
+				List<AcademicTitleStruct> insertedValues = new List<AcademicTitleStruct>();
+				List<string> notInsertedTitles = new List<string>();
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					cmd.ExecuteNonQuery();
-				}
-
-				return new ResultMessage() { IsSuccess = true, Message = "Success" };
-			}
-			catch (Exception ex)
-			{
-				return new ResultMessage() { IsSuccess = false, Message = ex.Message };
-			}
-		}
-
-		public async Task<ResultMessage> Insert(IEnumerable<AcadimicTitleStruct> titles)
-		{
-			try
-			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-
-				string sql =
-					$@"
-					INSERT INTO public.academic_title(id, name, short_name)
-					VALUES (@id, @name, @short_name);
-					";
-
-				await using (var cmd = dataSource.CreateCommand(sql))
-				{
-					foreach (AcadimicTitleStruct title in titles)
+					foreach (AcademicTitleStruct title in titles)
 					{
-						cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
-						cmd.Parameters.AddWithValue("@name", title.Name);
-						cmd.Parameters.AddWithValue("@short_name", title.ShortName);
+						try
+						{
+							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
+							cmd.Parameters.AddWithValue("@name", title.Name);
 
-						int cnt = cmd.ExecuteNonQuery();
-						if (cnt != 1)
-							throw new Exception($"Row with name={title.Name} and short name={title.ShortName} wasnt inserted");
+							var reader = cmd.ExecuteReader();
+							insertedValues.Add(new AcademicTitleStruct
+							{
+								ID = reader.GetGuid(0),
+								Name = reader.GetString(1)
+							});
+						}
+						catch (Exception ex)
+						{
+							notInsertedTitles.Add($"Row with name={title.Name} wasnt inserted, erorr: {ex.Message}");
+						}
+						//int cnt = cmd.ExecuteNonQuery();
+						//if (cnt != 1)
+						//	throw new Exception($"Row with name={title.Name} and short name={title.ShortName} wasnt inserted");
 					}
 				}
 
-				return new ResultMessage() { Message = "Success", IsSuccess = true };
+				return new (insertedValues, notInsertedTitles, new ResultMessage() { Message = "Success", IsSuccess = true });
 			}
 			catch (Exception ex)
 			{
-				return new ResultMessage() { Message = ex.Message, IsSuccess = false };
+				return new (new(), new(), new ResultMessage() { Message = ex.Message, IsSuccess = false });
 			}
 		}
 
-		public void Search()
+		public async Task<(ResultMessage Message, List<AcademicTitleStruct> Titles)> Search(string searchText)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+
+				string sql =
+					$@"
+					SELECT public.academic_title.id,
+						   public.academic_title.name
+					FROM public.academic_title
+					WHERE public.academic_title.id like '%@seachText%' OR
+						  public.academic_title.name like '%@seachText%'";
+
+				List<AcademicTitleStruct> results = new List<AcademicTitleStruct>();
+
+				await using (var cmd = dataSource.CreateCommand(sql))
+				{
+					cmd.Parameters.AddWithValue("@seachText", searchText);
+
+					var reader = cmd.ExecuteReader();
+					while (reader.Read())
+					{
+						results.Add(new AcademicTitleStruct
+						{
+							ID = reader.GetGuid(0),
+							Name = reader.GetString(1)
+						});
+					}
+				}
+
+				return new (new ResultMessage() { IsSuccess = true, Message = "Success" }, results);
+			}
+			catch (Exception ex)
+			{
+				return new(new ResultMessage() { IsSuccess = false, Message = ex.Message }, new List<AcademicTitleStruct>());
+			}
 		}
 
-		public async Task<(ResultMessage Message, List<UpdateAcademicTitleStruct> AcademicTitlesResult)> Update(IEnumerable<AcadimicTitleStruct> titles)
+		public async Task<(ResultMessage Message, List<UpdateAcademicTitleStruct> AcademicTitlesResult)> Update(IEnumerable<AcademicTitleStruct> titles)
 		{
 			try
 			{
@@ -82,7 +108,7 @@ namespace DocumentsFillerAPI.Providers
 				string sql =
 					$@"
 					UPDATE public.academic_title
-					SET name=@name, short_name=@shortName
+					SET name=@name
 					WHERE id = @id
 					";
 
@@ -90,17 +116,16 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					foreach (AcadimicTitleStruct title in titles)
+					foreach (AcademicTitleStruct title in titles)
 					{
 						try
 						{
 							cmd.Parameters.AddWithValue("@id", title.ID);
 							cmd.Parameters.AddWithValue("@name", title.Name);
-							cmd.Parameters.AddWithValue("@short_name", title.ShortName);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
-								throw new Exception($"Rows with title id={title.ID} wasnt updated");
+								throw new Exception($"Rows with title name={title.Name} wasnt updated");
 
 							results.Add(new UpdateAcademicTitleStruct { Title = title, IsSuccess = true, Message = "" });
 						}
@@ -113,8 +138,8 @@ namespace DocumentsFillerAPI.Providers
 
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count == 0 ? "Success" : "Success with errors",
-					IsSuccess = results.Count == 0,
+					Message = results.Count(a => !a.IsSuccess) == 0 ? "Success" : "Success with errors",
+					IsSuccess = results.Count(a => !a.IsSuccess) == 0,
 				};
 
 				return (message, results);
@@ -131,7 +156,7 @@ namespace DocumentsFillerAPI.Providers
 			}
 		}
 
-		public async Task<(ResultMessage, List<AcadimicTitleStruct>)> List(uint count, uint startIndex)
+		public async Task<(ResultMessage, List<AcademicTitleStruct>)> List(uint count, uint startIndex)
 		{
 			try
 			{
@@ -142,25 +167,23 @@ namespace DocumentsFillerAPI.Providers
 					$@"
 					SELECT id,
 						   name,
-						   short_name,
 						   ROW_NUMBER() OVER (ORDER BY id ASC, is_deleted DESC) AS row_id
 					FROM public.academic_title
-					WHERE row_id >= {startIndex} AND 
-						  is_deleted = False
-					LIMIT {count}";
+					WHERE is_deleted = False
+					OFFSET {startIndex}
+					{(count == 0 ? "" : $"LIMIT {count}")}";
 
-				List<AcadimicTitleStruct> results = new List<AcadimicTitleStruct>();
+				List<AcademicTitleStruct> results = new List<AcademicTitleStruct>();
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
 					var reader = cmd.ExecuteReader();
 					while (reader.Read())
 					{
-						results.Add(new AcadimicTitleStruct
+						results.Add(new AcademicTitleStruct
 						{
 							ID = reader.GetGuid(0),
 							Name = reader.GetString(1),
-							ShortName = reader.GetString(2)
 						});
 					}
 				}
@@ -169,13 +192,76 @@ namespace DocumentsFillerAPI.Providers
 			}
 			catch (Exception ex)
 			{
-				return (new ResultMessage() { IsSuccess = false, Message = ex.Message }, new List<AcadimicTitleStruct>());
+				return (new ResultMessage() { IsSuccess = false, Message = ex.Message }, new List<AcademicTitleStruct>());
+			}
+		}
+
+		public async Task<(ResultMessage Message, List<DeleteAcademicTitleStruct> Results)> Delete(List<Guid> titles)
+		{
+			try
+			{
+				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+
+				string sql =
+					$@"
+					UPDATE public.academic_title
+					SET is_deleted = True
+					WHERE id = @id
+					";
+
+				List<DeleteAcademicTitleStruct> results = new List<DeleteAcademicTitleStruct>();
+
+				await using (var cmd = dataSource.CreateCommand(sql))
+				{
+					foreach (Guid titleID in titles)
+					{
+						try
+						{
+							cmd.Parameters.AddWithValue("@id", titleID);
+
+							int cnt = cmd.ExecuteNonQuery();
+							if (cnt != 1)
+								throw new Exception($"Rows with titleID={titleID} wasnt updated");
+
+							results.Add(new DeleteAcademicTitleStruct { TitleID = titleID, IsSuccess = true, Message = "" });
+						}
+						catch (Exception ex)
+						{
+							results.Add(new DeleteAcademicTitleStruct { TitleID = titleID, IsSuccess = false, Message = ex.Message });
+						}
+					}
+				}
+
+				ResultMessage message = new ResultMessage
+				{
+					Message = results.Count(a => !a.IsSuccess) == 0 ? "Success" : "Success with errors",
+					IsSuccess = results.Count(a => !a.IsSuccess) == 0,
+				};
+
+				return (message, results);
+			}
+			catch (Exception ex)
+			{
+				ResultMessage message = new ResultMessage
+				{
+					Message = ex.Message,
+					IsSuccess = false
+				};
+
+				return new (message, new());
 			}
 		}
 
 		public record UpdateAcademicTitleStruct
 		{
-			public AcadimicTitleStruct Title { get; init; }
+			public AcademicTitleStruct Title { get; init; }
+			public string Message { get; init; }
+			public bool IsSuccess { get; init; }
+		}
+
+		public record DeleteAcademicTitleStruct
+		{
+			public Guid TitleID { get; init; }
 			public string Message { get; init; }
 			public bool IsSuccess { get; init; }
 		}

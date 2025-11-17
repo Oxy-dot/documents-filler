@@ -1,6 +1,6 @@
 ﻿namespace DocumentsFillerAPI.Structures
 {
-	public class AcadimicTitleStruct
+	public record struct AcademicTitleStruct
 	{
 		public Guid ID { get; set; }
 		public string Name { get; set; }

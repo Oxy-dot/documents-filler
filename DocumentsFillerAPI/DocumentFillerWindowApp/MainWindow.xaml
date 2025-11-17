@@ -39,6 +39,6 @@
                 </materialDesign:DrawerHost.LeftDrawerContent>
             </materialDesign:DrawerHost>
         </DockPanel>
-        <myControls:TeachersControl/>
+        <myControls:AcademicTitles/>
     </StackPanel>
 </Window>

@@ -1,14 +1,15 @@
 ﻿using DocumentsFillerAPI.Controllers;
 using DocumentsFillerAPI.Structures;
 using Npgsql;
+using static DocumentsFillerAPI.Providers.AcademicTitlePostgreProvider;
 
 namespace DocumentsFillerAPI.Providers
 {
 	public class DepartmentProvider
 	{
-		private string connectionString = "";
+		private string connectionString = "Host=localhost;Port=5432;Database=document_filler;Username=postgres;Password=root";
 
-		public async Task<ResultMessage> Delete(IEnumerable<Guid> departments)
+		public async Task<(ResultMessage Message, List<DeleteDepartmentStruct> Results)> Delete(List<Guid> departmentIDs)
 		{
 			try
 			{
@@ -18,23 +19,53 @@ namespace DocumentsFillerAPI.Providers
 					$@"
 					UPDATE public.department
 					SET is_deleted = True
-					WHERE id IN ('{string.Join("','", departments)}')
+					WHERE id = @id
 					";
+
+				List<DeleteDepartmentStruct> results = new List<DeleteDepartmentStruct>();
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					cmd.ExecuteNonQuery();
+					foreach (Guid departmentID in departmentIDs)
+					{
+						try
+						{
+							cmd.Parameters.AddWithValue("@id", departmentID);
+
+							int cnt = cmd.ExecuteNonQuery();
+							if (cnt != 1)
+								throw new Exception($"Rows with departmentID={departmentID} wasnt updated");
+
+							results.Add(new DeleteDepartmentStruct { DepartmentID = departmentID, IsSuccess = true, Message = "" });
+						}
+						catch (Exception ex)
+						{
+							results.Add(new DeleteDepartmentStruct { DepartmentID = departmentID, IsSuccess = false, Message = ex.Message });
+						}
+					}
 				}
 
-				return new ResultMessage() { IsSuccess = true, Message = "Success" };
+				ResultMessage message = new ResultMessage
+				{
+					Message = results.Count(a => !a.IsSuccess) == 0 ? "Success" : "Success with errors",
+					IsSuccess = results.Count(a => !a.IsSuccess) == 0,
+				};
+
+				return (message, results);
 			}
 			catch (Exception ex)
 			{
-				return new ResultMessage() { IsSuccess = false, Message = ex.Message };
+				ResultMessage message = new ResultMessage
+				{
+					Message = ex.Message,
+					IsSuccess = false
+				};
+
+				return new(message, new());
 			}
 		}
 
-		public async Task<ResultMessage> Insert(IEnumerable<DepartmentStruct> departments)
+		public async Task<(List<DepartmentStruct> Inserted, List<string> NotInserted, ResultMessage Result)> Insert(IEnumerable<DepartmentStruct> departments)
 		{
 			try
 			{
@@ -42,35 +73,81 @@ namespace DocumentsFillerAPI.Providers
 
 				string sql =
 					$@"
-					INSERT INTO public.department(id, name, short_name)
-					VALUES (@id, @name, @short_name);
+					INSERT INTO public.department(id, name)
+					VALUES (@id, @name) RETURNING *;
 					";
+
+				List<DepartmentStruct> insertedValues = new List<DepartmentStruct>();
+				List<string> notInsertedTitles = new List<string>();
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
 					foreach (DepartmentStruct department in departments)
 					{
-						cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
-						cmd.Parameters.AddWithValue("@name", department.Name);
-						cmd.Parameters.AddWithValue("@short_name", department.ShortName);
+						try
+						{
+							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
+							cmd.Parameters.AddWithValue("@name", department.Name);
 
-						int cnt = cmd.ExecuteNonQuery();
-						if (cnt != 1)
-							throw new Exception($"Row with name={department.Name} and short name={department.ShortName} wasnt inserted");
+							var reader = cmd.ExecuteReader();
+							insertedValues.Add(new DepartmentStruct
+							{
+								ID = reader.GetGuid(0),
+								Name = reader.GetString(1)
+							});
+						}
+						catch (Exception ex)
+						{
+							notInsertedTitles.Add($"Row with name={department.Name} wasnt inserted, erorr: {ex.Message}");
+						}
 					}
 				}
 
-				return new ResultMessage() { Message = "Success", IsSuccess = true };
+				return new(insertedValues, notInsertedTitles, new ResultMessage() { Message = "Success", IsSuccess = true });
 			}
 			catch (Exception ex)
 			{
-				return new ResultMessage() { Message = ex.Message, IsSuccess = false };
+				return new(new(), new(), new ResultMessage() { Message = ex.Message, IsSuccess = false });
 			}
 		}
 
-		public void Search()
+		public async Task<(ResultMessage Message, List<DepartmentStruct> Departments)> Search(string searchText)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+
+				string sql =
+					$@"
+					SELECT public.departments.id,
+						   public.departments.name
+					FROM public.departments
+					WHERE public.departments.id like '%@seachText%' OR
+						  public.departments.name like '%@seachText%'";
+
+				List<DepartmentStruct> results = new List<DepartmentStruct>();
+
+				await using (var cmd = dataSource.CreateCommand(sql))
+				{
+					cmd.Parameters.AddWithValue("@seachText", searchText);
+
+					var reader = cmd.ExecuteReader();
+					while (reader.Read())
+					{
+						results.Add(new DepartmentStruct
+						{
+							ID = reader.GetGuid(0),
+							Name = reader.GetString(1)
+						});
+					}
+				}
+
+				return new(new ResultMessage() { IsSuccess = true, Message = "Success" }, results);
+			}
+			catch (Exception ex)
+			{
+				return new(new ResultMessage() { IsSuccess = false, Message = ex.Message }, new List<DepartmentStruct>());
+			}
 		}
 
 		public async Task<(ResultMessage Message, List<UpdateDepartmentStruct> DepartmentsResults)> Update(IEnumerable<DepartmentStruct> departments)
@@ -82,7 +159,7 @@ namespace DocumentsFillerAPI.Providers
 				string sql =
 					$@"
 					UPDATE public.department
-					SET name=@name, short_name=@shortName
+					SET name=@name
 					WHERE id = @id
 					";
 
@@ -96,13 +173,12 @@ namespace DocumentsFillerAPI.Providers
 						{
 							cmd.Parameters.AddWithValue("@id", department.ID);
 							cmd.Parameters.AddWithValue("@name", department.Name);
-							cmd.Parameters.AddWithValue("@short_name", department.ShortName);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
-								throw new Exception($"Rows with department id={department.ID} wasnt updated");
+								throw new Exception($"Rows with title name={department.Name} wasnt updated");
 
-							results.Add(new UpdateDepartmentStruct { Department = department, IsSuccess = true, Message = "" });
+							results.Add(new UpdateDepartmentStruct { Department  = department, IsSuccess = true, Message = "" });
 						}
 						catch (Exception ex)
 						{
@@ -113,8 +189,8 @@ namespace DocumentsFillerAPI.Providers
 
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count == 0 ? "Success" : "Success with errors",
-					IsSuccess = results.Count == 0,
+					Message = results.Count(a => !a.IsSuccess) == 0 ? "Success" : "Success with errors",
+					IsSuccess = results.Count(a => !a.IsSuccess) == 0,
 				};
 
 				return (message, results);
@@ -142,12 +218,11 @@ namespace DocumentsFillerAPI.Providers
 					$@"
 					SELECT id,
 						   name,
-						   short_name,
 						   ROW_NUMBER() OVER (ORDER BY id ASC, is_deleted DESC) AS row_id
 					FROM public.department
-					WHERE row_id >= {startIndex} AND 
-						  is_deleted = False
-					LIMIT {count}";
+					WHERE is_deleted = False
+					OFFSET {startIndex}
+					{(count == 0 ? "" : $"LIMIT {count}")}";
 
 				List<DepartmentStruct> results = new List<DepartmentStruct>();
 
@@ -160,7 +235,6 @@ namespace DocumentsFillerAPI.Providers
 						{
 							ID = reader.GetGuid(0),
 							Name = reader.GetString(1),
-							ShortName = reader.GetString(2)
 						});
 					}
 				}
@@ -176,6 +250,13 @@ namespace DocumentsFillerAPI.Providers
 		public record UpdateDepartmentStruct
 		{
 			public DepartmentStruct Department { get; init; }
+			public string Message { get; init; }
+			public bool IsSuccess { get; init; }
+		}
+
+		public record DeleteDepartmentStruct
+		{
+			public Guid DepartmentID { get; init; }
 			public string Message { get; init; }
 			public bool IsSuccess { get; init; }
 		}
