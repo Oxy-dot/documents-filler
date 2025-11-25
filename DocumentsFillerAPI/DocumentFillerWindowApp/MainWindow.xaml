@@ -8,37 +8,64 @@
         Style="{StaticResource MaterialDesignWindow}"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <StackPanel Orientation="Horizontal">
-        <DockPanel>
-            <materialDesign:DrawerHost Name="NavDrawer"
-                               IsLeftDrawerOpen="True"
-                               OpenMode="Standard"
-                               DockPanel.Dock="Left">
-                <materialDesign:DrawerHost.LeftDrawerContent>
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="auto"/>
-                        </Grid.RowDefinitions>
-                        <StackPanel Orientation="Vertical" Grid.Row="0">
-                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Преподаватели</Button>
-                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Должности</Button>
-                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Кафедры</Button>
-                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Штатное расписание</Button>
-                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Ставки преподавателей</Button>
-                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Учет</Button>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1"/>
-                        <StackPanel Orientation="Vertical" Grid.Row="2">
-                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">История файлов</Button>
-                            <Button Margin="0, 10" Style="{StaticResource MaterialDesignFlatButton}">Добавить новый файл</Button>
-                        </StackPanel>
-                    </Grid>
-                </materialDesign:DrawerHost.LeftDrawerContent>
-            </materialDesign:DrawerHost>
-        </DockPanel>
-        <myControls:AcademicTitles/>
-    </StackPanel>
+        Title="Дипломный проект" Height="600" Width="1000">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Material Design Navigation Rail -->
+        <myControls:NavigationRail x:Name="NavigationRailControl"
+                                    Grid.Column="0"
+                                    ItemSelected="NavigationRailControl_ItemSelected"/>
+
+        <!-- Content Area -->
+        <Grid Grid.Column="1" Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <materialDesign:Card Grid.Row="0" 
+                                 Margin="0,0,0,16" 
+                                 Padding="16">
+                <StackPanel>
+                    <TextBlock x:Name="PageTitle" 
+                               Text="Welcome" 
+                               Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                               Margin="0,0,0,8"/>
+                    <!--<TextBlock x:Name="PageDescription" 
+                               Text="Select an item from the navigation rail to get started." 
+                               Style="{StaticResource MaterialDesignBody1TextBlock}"
+                               Foreground="{DynamicResource MaterialDesign.BodyLight}"/>-->
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!-- Content Container -->
+            <materialDesign:Card Grid.Row="1" Padding="16">
+                <ContentControl x:Name="ContentArea">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <materialDesign:PackIcon Kind="Navigation" 
+                                                 Width="64" 
+                                                 Height="64" 
+                                                 HorizontalAlignment="Center"
+                                                 Margin="0,0,0,16"
+                                                 Foreground="{DynamicResource MaterialDesign.BodyLight}"/>
+                        <!--<TextBlock Text="Material Design Navigation Rail Example" 
+                                   Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,8"/>-->
+                        <TextBlock Text="This is a complete Material Design 3 Navigation Rail implementation." 
+                                   Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                   HorizontalAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   Foreground="{DynamicResource MaterialDesign.BodyLight}"/>
+                    </StackPanel>
+                </ContentControl>
+            </materialDesign:Card>
+        </Grid>
+    </Grid>
 </Window>

@@ -53,12 +53,13 @@ namespace DocumentsFillerAPI.Providers
 						cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
 						cmd.Parameters.AddWithValue("@bet", bet.BetAmount);
 						cmd.Parameters.AddWithValue("@hours_amount", bet.HoursAmount);
-						cmd.Parameters.AddWithValue("@is_additional", bet.IsAdditional);
-						cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
+						//cmd.Parameters.AddWithValue("@is_additional", bet.IsAdditional);
+						//cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
 
 						int cnt = cmd.ExecuteNonQuery();
 						if (cnt != 1)
-							throw new Exception($"Row with bet={bet.BetAmount} and bet={bet.HoursAmount} and bet={bet.IsAdditional} and bet={bet.IsExcessive} wasnt inserted");
+							//and bet = { bet.IsAdditional } and bet = { bet.IsExcessive }
+							throw new Exception($"Row with bet={bet.BetAmount} and bet={bet.HoursAmount} wasnt inserted");
 					}
 				}
 
@@ -99,8 +100,8 @@ namespace DocumentsFillerAPI.Providers
 							cmd.Parameters.AddWithValue("@id", bet.ID);
 							cmd.Parameters.AddWithValue("@bet", bet.BetAmount);
 							cmd.Parameters.AddWithValue("@hours_amount", bet.HoursAmount);
-							cmd.Parameters.AddWithValue("@is_additional", bet.IsAdditional);
-							cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
+							//cmd.Parameters.AddWithValue("@is_additional", bet.IsAdditional);
+							//cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
@@ -167,8 +168,8 @@ namespace DocumentsFillerAPI.Providers
 							ID = reader.GetGuid(0),
 							BetAmount = reader.GetDouble(1),
 							HoursAmount = reader.GetInt32(2),
-							IsExcessive = reader.GetBoolean(3),
-							IsAdditional = reader.GetBoolean(4),
+							//IsExcessive = reader.GetBoolean(3),
+							//IsAdditional = reader.GetBoolean(4),
 						});
 					}
 				}

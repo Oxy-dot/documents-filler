@@ -30,5 +30,23 @@ namespace DocumentFillerWindowApp.UserControls
 			DataContext = _viewModel;
 			InitializeComponent();
 		}
+
+		private void Button_Click(object sender, RoutedEventArgs e)
+		{
+			if (MainGrid.SelectedItems.Count == 0)
+			{
+				MessageBox.Show("Выбрано 0 записей", "Удаление преподавателей", MessageBoxButton.OK, MessageBoxImage.Warning);
+				return;
+			}
+
+			_viewModel.Delete((MainGrid.SelectedItems as List<TeacherRecord>)!);
+			//var window = new AddNewAcademicTitle();
+			//window.Owner = Window.GetWindow(this);
+			//window.ShowDialog();		}
+		}
+		private void Button_Click_1(object sender, RoutedEventArgs e)
+		{
+			_viewModel.FindChangesAndUpdate();
+		}
 	}
 }

@@ -12,6 +12,9 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
         <Grid Margin="10" Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
@@ -35,7 +38,7 @@
             x:Name="MainGrid"
             AutoGenerateColumns="False"
             CanUserAddRows="True"
-            CanUserDeleteRows="True"
+            CanUserDeleteRows="False"
             ItemsSource="{Binding Departments}"
             SelectionMode="Extended"
             SelectionUnit="FullRow"

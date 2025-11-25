@@ -35,7 +35,6 @@
             x:Name="MainGrid"
             AutoGenerateColumns="False"
             CanUserAddRows="True"
-            CanUserDeleteRows="True"
             ItemsSource="{Binding AcademicTitles}"
             SelectionMode="Extended"
             SelectionUnit="FullRow"

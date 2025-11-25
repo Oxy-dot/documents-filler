@@ -6,26 +6,110 @@
              xmlns:local="clr-namespace:DocumentFillerWindowApp.UserControls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Orientation="Horizontal">
-        <Grid Width="80" Background="{DynamicResource MaterialDesign.Brush.Card.Background}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <ToggleButton Grid.Row="0" Margin="0, 25, 0, 0" Style="{StaticResource MaterialDesignHamburgerToggleButton}"/>
-            <ListBox Grid.Row="1" VerticalAlignment="Top" ItemsSource="{Binding AllTables}">
+             d:DesignHeight="450" d:DesignWidth="80">
+    <Grid Background="{DynamicResource MaterialDesign.Brush.Card.Background}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Section - App Icon/Logo --><!--
+        <StackPanel Grid.Row="0" Margin="0,16,0,8" HorizontalAlignment="Center">
+            <Button Style="{StaticResource MaterialDesignIconButton}"
+                    Width="48" Height="48"
+                    Margin="0,0,0,8"
+                    Click="MenuButton_Click">
+                <materialDesign:PackIcon Kind="Menu" Width="24" Height="24"/>
+            </Button>
+        </StackPanel>-->
+
+        <!-- Navigation Items -->
+        <ListBox Grid.Row="1" 
+                 x:Name="NavigationListBox"
+                 ItemsSource="{Binding NavigationItems}"
+                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                 SelectionChanged="NavigationListBox_SelectionChanged"
+                 BorderThickness="0"
+                 Background="Transparent"
+                 materialDesign:NavigationRailAssist.IsTextVisible="True"
+                 materialDesign:NavigationRailAssist.ShowSelectionBackground="False"
+                 materialDesign:NavigationRailAssist.SelectionCornerRadius="0">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <!--<Setter Property="materialDesign:NavigationRailAssist."-->
+                    <Setter Property="materialDesign:NavigationRailAssist.SelectedIcon" Value="None" />
+                    <Setter Property="materialDesign:NavigationRailAssist.UnselectedIcon" Value="None" />
+                    <Setter Property="materialDesign:NavigationRailAssist.ShowSelectionBackground" Value="False"/>
+                    <Setter Property="materialDesign:NavigationRailAssist.IsTextVisible" Value="True" />
+                    <Setter Property="Width" Value="auto" />
+                    <!--<Setter Property=""/>-->
+                    <!--<Setter Property="materialDesign:NavigationRailAssist" Value="None" />-->
+                    <!--<Setter Property="Padding" Value="12,8"/>
+                    <Setter Property="Margin" Value="8,4"/>-->
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="10px" Orientation="Horizontal" 
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding Title}" 
+                                   VerticalAlignment="Center"
+                                   FontSize="14"
+                                   x:Name="ItemText"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <!--x:Name="NavigationListBox"-->
+        <!-- Bottom Section - Additional Actions -->
+        <StackPanel Grid.Row="2" Margin="0,8,0,16" HorizontalAlignment="Center">
+            <!--<ListBox Grid.Row="1" 
+                 ItemsSource="{Binding FileNavigatonItems}"
+                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                 SelectionChanged="NavigationListBox_SelectionChanged"
+                 BorderThickness="0"
+                 Background="Transparent"
+                 materialDesign:NavigationRailAssist.IsTextVisible="True"
+                 materialDesign:NavigationRailAssist.ShowSelectionBackground="False"
+                 materialDesign:NavigationRailAssist.SelectionCornerRadius="0">
                 <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesign3.NavigationBarListBoxItem}">
-                        <Setter Property="materialDesign:NavigationRailAssist.IsTextVisible" Value="True"/>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        --><!--<Setter Property="materialDesign:NavigationRailAssist."--><!--
+                        <Setter Property="materialDesign:NavigationRailAssist.SelectedIcon" Value="None" />
+                        <Setter Property="materialDesign:NavigationRailAssist.UnselectedIcon" Value="None" />
+                        <Setter Property="materialDesign:NavigationRailAssist.ShowSelectionBackground" Value="False"/>
+                        <Setter Property="materialDesign:NavigationRailAssist.IsTextVisible" Value="True" />
+                        <Setter Property="Width" Value="auto" />
+                        --><!--<Setter Property=""/>-->
+                        <!--<Setter Property="materialDesign:NavigationRailAssist" Value="None" />-->
+                        <!--<Setter Property="Padding" Value="12,8"/>
+                    <Setter Property="Margin" Value="8,4"/>--><!--
                     </Style>
                 </ListBox.ItemContainerStyle>
-                <ListBox.Resources>
-                    <DataTemplate DataType="{x:Type local:NavigationRailItem}">
-                        <TextBlock Text="{Binding Title}" />
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="10px" Orientation="Horizontal" 
+                                HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding Title}" 
+                                   VerticalAlignment="Center"
+                                   FontSize="14"
+                                   x:Name="ItemText"/>
+                        </StackPanel>
                     </DataTemplate>
-                </ListBox.Resources>
-            </ListBox>
-        </Grid>
-    </StackPanel>
+                </ListBox.ItemTemplate>
+            </ListBox>-->
+            <!--<Button>Файлы</Button>-->
+            <Button Margin="5">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="Add" />
+                    <TextBlock>Создать новый файл</TextBlock>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
 </UserControl>
