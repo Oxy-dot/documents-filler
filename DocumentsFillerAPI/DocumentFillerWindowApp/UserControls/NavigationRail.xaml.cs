@@ -86,6 +86,12 @@ namespace DocumentFillerWindowApp.UserControls
 					IconKind = PackIconKind.ClipboardText,
 					Id = "Accounting"
 				},
+				new NavigationRailItem
+				{
+					Title = "Создать стаффинг табле",
+					IconKind = PackIconKind.ClipboardText,
+					Id = "CreateStaffingTable"
+				},
 			};
 
 			FileNavigatonItems = new ObservableCollection<NavigationRailItem>()

@@ -1,0 +1,71 @@
+<Window x:Class="DocumentFillerWindowApp.ModalWindows.SelectTeachersWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Выбор преподавателей"
+        Height="550"
+        Width="1000"
+        Style="{StaticResource MaterialDesignWindow}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="Выберите преподавателей"
+                       Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+            <TextBlock x:Name="SelectionStatus"
+                       Margin="0,4,0,0"
+                       Text="Выбрано: 0"
+                       Style="{StaticResource MaterialDesignBody2TextBlock}"
+                       Foreground="{DynamicResource MaterialDesign.BodyLight}"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1"
+                  x:Name="SelectionGrid"
+                  ItemsSource="{Binding Teachers}"
+                  SelectionMode="Extended"
+                  SelectionUnit="FullRow"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  SelectionChanged="SelectionGrid_SelectionChanged"
+                  materialDesign:DataGridAssist.CellPadding="12,6"
+                  materialDesign:DataGridAssist.ColumnHeaderPadding="12,6"
+                  Margin="0,0,0,8">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding FirstName}" Header="Фамилия"/>
+                <DataGridTextColumn Binding="{Binding SecondName}" Header="Имя"/>
+                <DataGridTextColumn Binding="{Binding Patronymic}" Header="Отчество"/>
+                <DataGridTextColumn Binding="{Binding MainBet.BetAmount}" Header="Доля ставки (Нормативная)"/>
+                <DataGridTextColumn Binding="{Binding MainBet.HoursAmount}" Header="Часы (Нормативная)"/>
+                <DataGridTextColumn Binding="{Binding SecondBet.BetAmount}" Header="Доля ставки (Сверхнормативная)"/>
+                <DataGridTextColumn Binding="{Binding SecondBet.HoursAmount}" Header="Часы (Сверхнормативная)"/>
+                <DataGridTextColumn Binding="{Binding ExcessiveBet.HoursAmount}" Header="Часы (Дополнительная)"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,8,0,0"
+                    >
+            <!--Spacing="8"-->
+            <Button Content="Отмена"
+                    MinWidth="120"
+                    Style="{StaticResource MaterialDesignFlatButton}"
+                    Click="CancelButton_Click"/>
+            <Button Content="Выбрать"
+                    MinWidth="140"
+                    Click="ConfirmButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
+

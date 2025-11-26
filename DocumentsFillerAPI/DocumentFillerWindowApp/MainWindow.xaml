@@ -36,10 +36,10 @@
                                Text="Welcome" 
                                Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                                Margin="0,0,0,8"/>
-                    <!--<TextBlock x:Name="PageDescription" 
-                               Text="Select an item from the navigation rail to get started." 
-                               Style="{StaticResource MaterialDesignBody1TextBlock}"
-                               Foreground="{DynamicResource MaterialDesign.BodyLight}"/>-->
+                    <Button Content="Выбрать преподавателей"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Click="OpenSelectTeachers_Click"/>
                 </StackPanel>
             </materialDesign:Card>
 

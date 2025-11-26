@@ -196,7 +196,7 @@ namespace DocumentsFillerAPI.Providers
 						   second_bet.hours_amount,
 						   excessive_bet.id,
 						   excessive_bet.hours_amount,
-						   ROW_NUMBER() OVER (ORDER BY id ASC, is_deleted DESC) AS row_id
+						   ROW_NUMBER() OVER (ORDER BY public.teacher.id ASC) AS row_id
 					FROM public.teacher LEFT JOIN
 						   public.bet AS main_bet ON public.teacher.main_bet_id = main_bet.id AND
 												     main_bet.is_deleted = False LEFT JOIN
@@ -204,9 +204,9 @@ namespace DocumentsFillerAPI.Providers
 													   second_bet.is_deleted = False LEFT JOIN
 						   public.bet AS excessive_bet ON public.teacher.excessive_bet_id = excessive_bet.id AND
 														  excessive_bet.is_deleted = False
-					WHERE is_deleted = False
+					WHERE public.teacher.is_deleted = False
 					OFFSET {startIndex}
-					LIMIT {count}";
+					LIMIT {(count == 0 ? "NULL" : count.ToString())}";
 
 				//main_bet_id, 
 				//		   second_bet_id, 

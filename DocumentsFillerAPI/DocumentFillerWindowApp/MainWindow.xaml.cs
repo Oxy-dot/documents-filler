@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using DocumentFillerWindowApp.ModalWindows;
 using DocumentFillerWindowApp.UserControls;
 
 namespace DocumentFillerWindowApp
@@ -39,6 +40,9 @@ namespace DocumentFillerWindowApp
 					break;
 				case "Departments":
 					ContentArea.Content = new UserControls.DepartmentControl();
+					break;
+				case "CreateStaffingTable":
+					ContentArea.Content = new UserControls.CreateStaffingTableControl();
 					break;
 				case "Staffing":
 					ContentArea.Content = CreatePlaceholderContent("Штатное расписание", "Staffing");
@@ -84,6 +88,28 @@ namespace DocumentFillerWindowApp
 			stackPanel.Children.Add(description);
 
 			return stackPanel;
+		}
+
+		private void OpenSelectTeachers_Click(object sender, RoutedEventArgs e)
+		{
+			var window = new SelectTeachersWindow
+			{
+				Owner = this
+			};
+
+			if (window.ShowDialog() == true)
+			{
+				var selected = window.SelectedTeachers;
+				PageTitle.Text = $"Выбрано преподавателей: {selected.Count}";
+
+				ContentArea.Content = new TextBlock
+				{
+					Text = string.Join(Environment.NewLine, selected.Select(t => $"{t.SecondName} {t.FirstName} {t.Patronymic}")),
+					FontSize = 16,
+					TextWrapping = TextWrapping.Wrap,
+					Margin = new Thickness(16)
+				};
+			}
 		}
 	}
 }

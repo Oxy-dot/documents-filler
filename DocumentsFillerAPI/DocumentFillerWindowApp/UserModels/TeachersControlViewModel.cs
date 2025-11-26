@@ -139,6 +139,14 @@ namespace DocumentFillerWindowApp.UserModels
 			}
 		}
 
+		public void RecreateCollection(List<TeacherRecord> teachers)
+		{
+			Teachers.CollectionChanged -= OnCollectionChanged;
+			Teachers = new ObservableCollection<TeacherRecord>(teachers);
+			Teachers.CollectionChanged += OnCollectionChanged;
+			OnPropertyChanged("Teachers");
+		}
+
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{
