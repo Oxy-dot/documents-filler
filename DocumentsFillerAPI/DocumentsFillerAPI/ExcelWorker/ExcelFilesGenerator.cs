@@ -393,11 +393,28 @@ namespace DocumentsFillerAPI.ExcelWorker
 			row.CreateCell(1).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.FullName);
 			row.CreateCell(2).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.AcademicTitle);
 
-			row.CreateCell(3).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.MainBetInfo.Value.HoursAmount.Value);
-			row.CreateCell(4).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.MainBetInfo.Value.Bet.Value);
+			if (data.MainBetInfo.HasValue)
+			{
+				row.CreateCell(3).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.MainBetInfo.Value.HoursAmount);
+				row.CreateCell(4).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.MainBetInfo.Value.Bet);
+			}
+			else
+			{
+				row.CreateCell(3).SetStyle(tableColumnsNotBoldStyle);
+				row.CreateCell(4).SetStyle(tableColumnsNotBoldStyle);
+			}
 
-			row.CreateCell(5).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.ExcessiveBetInfo.Value.HoursAmount.Value);
-			row.CreateCell(6).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.ExcessiveBetInfo.Value.Bet.Value);
+
+			if (data.ExcessiveBetInfo.HasValue)
+			{
+				row.CreateCell(5).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.ExcessiveBetInfo.Value.HoursAmount);
+				row.CreateCell(6).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.ExcessiveBetInfo.Value.Bet);
+			}
+			else
+			{
+				row.CreateCell(5).SetStyle(tableColumnsNotBoldStyle);
+				row.CreateCell(6).SetStyle(tableColumnsNotBoldStyle);
+			}
 		}
 
 		public readonly record struct ServiceMemoInputData
@@ -425,8 +442,8 @@ namespace DocumentsFillerAPI.ExcelWorker
 
 		public readonly record struct ServiceMemoTemplateBetStruct
 		{
-			public double? HoursAmount { get; init; }
-			public double? Bet { get; init; }
+			public int HoursAmount { get; init; }
+			public double Bet { get; init; }
 		}
 
 		#endregion

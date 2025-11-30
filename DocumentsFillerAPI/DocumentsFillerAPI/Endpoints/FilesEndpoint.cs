@@ -152,5 +152,119 @@ namespace DocumentsFillerAPI.Endpoints
 				return BadRequest(ex);
 			}
 		}
+
+		[HttpPost("generateServiceMemo")]
+		public async Task<IActionResult> GenerateServiceMemo()
+		{
+			try
+			{
+				var jBody = Request.GetBodyJson()["serviceMemoInfo"]!;
+
+				var data = new ExcelFilesGenerator.ServiceMemoInputData()
+				{
+					FirstAcademicYear = (int)jBody["firstAcademicYear"]!,
+					SecondAcademicYear = (int)jBody["secondAcademicYear"]!,
+					StudyPeriodDateStart = (DateTime)jBody["studyPeriodDateStart"]!,
+					StudyPeriodDateEnd = (DateTime)jBody["studyPeriodDateEnd"]!,
+					ProtocolNumber = (int)jBody["protocolNumber"]!,
+					ProtocolDateTime = (DateTime)jBody["protocolDateTime"]!,
+					MainStaff = jBody["mainStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.ServiceMemoTemplateRow
+					{
+						FullName = (string)a["fullName"]!,
+						AcademicTitle = (string)a["academicTitle"]!,
+						MainBetInfo = a["mainBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["mainBetInfo"]!["bet"]!,
+						} : null,
+						AdditionalBetInfo = a["additionalBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["additionalBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["additionalBetInfo"]!["bet"]!,
+						} : null,
+						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["excessiveBetInfo"]!["bet"]!,
+						} : null,
+					}).ToList(),
+					InternalStaff = jBody["internallStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.ServiceMemoTemplateRow
+					{
+						FullName = (string)a["fullName"]!,
+						AcademicTitle = (string)a["academicTitle"]!,
+						MainBetInfo = a["mainBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["mainBetInfo"]!["bet"]!,
+						} : null,
+						AdditionalBetInfo = a["additionalBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["additionalBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["additionalBetInfo"]!["bet"]!,
+						} : null,
+						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["excessiveBetInfo"]!["bet"]!,
+						} : null,
+					}).ToList(),
+					ExternalStaff = jBody["externalStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.ServiceMemoTemplateRow
+					{
+						FullName = (string)a["fullName"]!,
+						AcademicTitle = (string)a["academicTitle"]!,
+						MainBetInfo = a["mainBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["mainBetInfo"]!["bet"]!,
+						} : null,
+						AdditionalBetInfo = a["additionalBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["additionalBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["additionalBetInfo"]!["bet"]!,
+						} : null,
+						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["excessiveBetInfo"]!["bet"]!,
+						} : null,
+					}).ToList(),
+					HourlyWorkers = jBody["hourlyWorkers"]!.AsArray().Select(a => new ExcelFilesGenerator.ServiceMemoTemplateRow
+					{
+						FullName = (string)a["fullName"]!,
+						AcademicTitle = (string)a["academicTitle"]!,
+						MainBetInfo = a["mainBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["mainBetInfo"]!["bet"]!,
+						} : null,
+						AdditionalBetInfo = a["additionalBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["additionalBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["additionalBetInfo"]!["bet"]!,
+						} : null,
+						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
+						{
+							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
+							Bet = (double)a["excessiveBetInfo"]!["bet"]!,
+						} : null,
+					}).ToList(),
+				};
+
+				var stream = new MemoryStream();
+
+				_excelFilesGenerator.GenerateServiceMemo(data).Write(stream);
+				stream.Position = 0;
+
+				return new FileStreamResult(stream, "application/xml");
+			}
+			catch (Exception ex)
+			{
+				var jsonResult = new JsonObject()
+				{
+					["message"] = ex.Message,
+				};
+				return BadRequest(ex);
+			}
+		}
 	}
 }

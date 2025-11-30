@@ -44,6 +44,9 @@ namespace DocumentFillerWindowApp
 				case "CreateStaffingTable":
 					ContentArea.Content = new UserControls.CreateStaffingTableControl();
 					break;
+				case "CreateServiceMemoTable":
+					ContentArea.Content = new UserControls.CreateServiceMemoTableControl();
+					break;
 				case "Staffing":
 					ContentArea.Content = CreatePlaceholderContent("Штатное расписание", "Staffing");
 					break;

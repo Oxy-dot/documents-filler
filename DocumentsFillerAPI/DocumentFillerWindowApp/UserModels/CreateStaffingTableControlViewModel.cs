@@ -24,6 +24,17 @@ namespace DocumentFillerWindowApp.UserModels
 		private DepartmentRecord _selectedDepartment;
 		private DateTime _protocolDate;
 		private string _protocolNumberText;
+		private string _fileName = "";
+
+		public string FileName
+		{
+			get => _fileName;
+			set
+			{
+				_fileName = value;
+				OnPropertyChanged();
+			}
+		}
 
 		public string ProtocolNumberText
 		{
@@ -120,7 +131,7 @@ namespace DocumentFillerWindowApp.UserModels
 			Departments = _departmentsAPI.Get().Result.Departments;
 		}
 
-		public async Task GenerateStaffingTable(string fileName)
+		public async Task GenerateStaffingTable()
 		{
 			try
 			{
@@ -151,8 +162,9 @@ namespace DocumentFillerWindowApp.UserModels
 					}).ToList(),
 				};
 
+				var fileName = string.IsNullOrWhiteSpace(_fileName) ? "testFile" : _fileName;
 				var result = await _filesAPI.GenerateStaffingTable(data, fileName);
-				if (string.IsNullOrEmpty(result.Message))
+				if (!string.IsNullOrEmpty(result.Message))
 				{
 					MessageBox.Show(result.Message, "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
 					return;

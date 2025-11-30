@@ -92,6 +92,12 @@ namespace DocumentFillerWindowApp.UserControls
 					IconKind = PackIconKind.ClipboardText,
 					Id = "CreateStaffingTable"
 				},
+				new NavigationRailItem
+				{
+					Title = "Создать мемо табле",
+					IconKind = PackIconKind.ClipboardText,
+					Id = "CreateServiceMemoTable"
+				},
 			};
 
 			FileNavigatonItems = new ObservableCollection<NavigationRailItem>()
