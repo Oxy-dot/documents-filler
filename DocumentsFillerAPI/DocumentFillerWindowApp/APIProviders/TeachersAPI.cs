@@ -1,10 +1,5 @@
 ﻿using DocumentFillerWindowApp.UserModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 
 namespace DocumentFillerWindowApp.APIProviders
 {
@@ -46,6 +41,11 @@ namespace DocumentFillerWindowApp.APIProviders
 						ID = (Guid)a["ExcessiveBet"]!["ID"]!,
 						BetAmount = (double)a["ExcessiveBet"]!["BetAmount"]!,
 						HoursAmount = (int)a["ExcessiveBet"]!["HoursAmount"]!
+					},
+					AcademicTitle = new AcademicTitleRecord 
+					{
+						ID = (Guid)a["AcademicTitle"]!["ID"]!,
+						Name = (string)a["AcademicTitle"]!["Name"]!,
 					}
 					//Name = (string)a["Name"]!
 				}).ToList();

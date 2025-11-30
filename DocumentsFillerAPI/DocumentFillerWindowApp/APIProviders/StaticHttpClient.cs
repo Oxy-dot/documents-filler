@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
 using System.Text.Json.Nodes;
 
 namespace DocumentFillerWindowApp.APIProviders
@@ -58,8 +59,28 @@ namespace DocumentFillerWindowApp.APIProviders
 			if (!result.IsSuccessStatusCode)
 				return new(default, $"StatusCode: {result.StatusCode}; Message: {resultString}", false);
 
-			//TODO Скорее всего сломается, но похуй
+			//TODO Скорее всего сломается, но похуй, потом исправлю
 			return new((T)JsonNode.Parse(resultString), "Success", true);
+		}
+
+		public static async Task<(Stream? Response, string Message, bool IsSuccess)> PostStream(string controller, string method, JsonNode jBody, List<KeyValuePair<string, string>> queryParams = default, CancellationToken ct = default)
+		{
+			string uri = $"{SERVER_URL}/{controller.Trim()}/{method.Trim()}";
+			if (queryParams != null && queryParams.Count != 0)
+			{
+				uri += "?";
+				uri += string.Join("&", queryParams.Select(param => $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value)}"));
+			}
+
+			HttpContent httpContent = new StringContent(jBody.ToString());
+
+			var result = await _httpClient.PostAsync(uri, httpContent, ct);
+			var resultStream = await result.Content.ReadAsStreamAsync();
+
+			if (!result.IsSuccessStatusCode)
+				return new(default, $"StatusCode: {result.StatusCode}; Message: {resultStream}", false);
+
+			return new(resultStream, "Success", true);
 		}
 	}
 }

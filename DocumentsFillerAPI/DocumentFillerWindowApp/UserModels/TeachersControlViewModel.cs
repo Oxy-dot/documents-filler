@@ -163,6 +163,7 @@ namespace DocumentFillerWindowApp.UserModels
 		public BetRecord MainBet { get; set; }
 		public BetRecord SecondBet { get; set; }
 		public BetRecord ExcessiveBet { get; set; }
+		public AcademicTitleRecord AcademicTitle { get; set; }
 	}
 
 	public record BetRecord

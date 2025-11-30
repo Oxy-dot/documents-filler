@@ -1,19 +1,9 @@
 ﻿using DocumentFillerWindowApp.ModalWindows;
 using DocumentFillerWindowApp.UserModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace DocumentFillerWindowApp.UserControls
 {
@@ -56,6 +46,32 @@ namespace DocumentFillerWindowApp.UserControls
 			{
 				_viewModel.ExternalStaff = _selectTeacherWindow.SelectedTeachers.ToList();
 			}
+		}
+
+		private void StartYearNumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+		{
+			// Разрешаем только цифры
+			Regex regex = new Regex("[^0-9]+");
+			e.Handled = regex.IsMatch(e.Text) && (sender as TextBox).Text /*_viewModel.StartYearTextBoxText*/.Length <= 2;
+		}
+
+		private void EndYearNumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+		{
+			// Разрешаем только цифры
+			Regex regex = new Regex("[^0-9]+");
+			e.Handled = regex.IsMatch(e.Text) && _viewModel.EndYearTextBoxText.Length <= 2;
+		}
+
+		private void NumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+		{
+			// Разрешаем только цифры
+			Regex regex = new Regex("[^0-9]+");
+			e.Handled = regex.IsMatch(e.Text) /*&& _viewModel.EndYearTextBoxText.Length <= 2*/;
+		}
+
+		private async void Button_Click_3(object sender, RoutedEventArgs e)
+		{
+			await _viewModel.GenerateStaffingTable("testFile");
 		}
 	}
 }

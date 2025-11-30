@@ -17,6 +17,7 @@
 		public string FirstName { get; set; }
 		public string SecondName { get; set; }
 		public string Patronymic { get; set; }
+		public AcademicTitleStruct AcademicTitle { get; set; }
 		public BetStruct MainBet { get; set; }
 		public BetStruct SecondBet { get; set; }
 		public BetStruct ExcessiveBet { get; set; }

@@ -119,7 +119,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 
 		private void FillStaffForStaffingTemplate(IRow row, StaffingTemplateRow data, ICellStyle tableColumnsNotBoldStyle)
 		{
-			row.CreateCell(0, CellType.String).SetStyle(tableColumnsNotBoldStyle);
+			row.CreateCell(0, CellType.String).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.FullName);
 			row.CreateCell(1, CellType.Numeric).SetStyle(tableColumnsNotBoldStyle);
 			row.CreateCell(2, CellType.Numeric).SetStyle(tableColumnsNotBoldStyle);
 			row.CreateCell(3, CellType.Numeric).SetStyle(tableColumnsNotBoldStyle);

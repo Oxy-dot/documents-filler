@@ -1,5 +1,7 @@
-﻿using DocumentsFillerAPI.Providers;
+﻿using DocumentsFillerAPI.ExcelWorker;
+using DocumentsFillerAPI.Providers;
 using Microsoft.AspNetCore.Mvc;
+using NPOI.XSSF.UserModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -10,6 +12,7 @@ namespace DocumentsFillerAPI.Endpoints
 	public class filesController : ControllerBase
 	{
 		private FilePostgreProvider _provider = new FilePostgreProvider();
+		private ExcelFilesGenerator _excelFilesGenerator = new ExcelFilesGenerator();
 
 		[HttpGet("get")]
 		public async Task<IActionResult> GetFiles(uint count, uint startIndex)
@@ -97,6 +100,56 @@ namespace DocumentsFillerAPI.Endpoints
 				};
 
 				return BadRequest(jsonResult);
+			}
+		}
+
+		[HttpPost("generateStaffingTable")]
+		public async Task<IActionResult> GenerateStaffingTable()
+		{
+			try
+			{
+				var jBody = Request.GetBodyJson()["staffingTableInfo"]!;
+
+				var data = new ExcelFilesGenerator.StaffingTemplateInputData()
+				{
+					DepartmentName = (string)jBody["departmentName"]!,
+					FirstAcademicYear = (int)jBody["firstAcademicYear"]!,
+					SecondAcademicYear = (int)jBody["secondAcademicYear"]!,
+					ProtocolNumber = (int)jBody["protocolNumber"]!,
+					ProtocolDate = (DateTime)jBody["protocolDate"]!,
+					MainStaff = jBody["mainStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.StaffingTemplateRow 
+					{
+						FullName = (string)a["fullName"]!,
+						AcademicTitle = (string)a["academicTitle"]!,
+						Bet = (double)a["bet"]!
+					}).ToList(),
+					InternalStaff = jBody["internalStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.StaffingTemplateRow
+					{
+						FullName = (string)a["fullName"]!,
+						AcademicTitle = (string)a["academicTitle"]!,
+						Bet = (double)a["bet"]!
+					}).ToList(),
+					ExternalStaff = jBody["ExternalStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.StaffingTemplateRow
+					{
+						FullName = (string)a["fullName"]!,
+						AcademicTitle = (string)a["academicTitle"]!,
+						Bet = (double)a["bet"]!
+					}).ToList(),
+				};
+
+				var stream = new MemoryStream();
+
+				_excelFilesGenerator.GenerateStaffingTemplate(data).Write(stream);
+
+				return new FileStreamResult(stream, "application/xml");
+			}
+			catch (Exception ex)
+			{
+				var jsonResult = new JsonObject()
+				{
+					["message"] = ex.Message,
+				};
+				return BadRequest(ex);
 			}
 		}
 	}

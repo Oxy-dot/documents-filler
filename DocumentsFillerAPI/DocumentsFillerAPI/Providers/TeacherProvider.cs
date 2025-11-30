@@ -196,8 +196,12 @@ namespace DocumentsFillerAPI.Providers
 						   second_bet.hours_amount,
 						   excessive_bet.id,
 						   excessive_bet.hours_amount,
+						   public.academic_title.id,
+						   public.academic_title.name,
 						   ROW_NUMBER() OVER (ORDER BY public.teacher.id ASC) AS row_id
 					FROM public.teacher LEFT JOIN
+						   public.academic_title ON public.teacher.academic_title = public.academic_title.id AND
+													public.academic_title.is_deleted = False LEFT JOIN
 						   public.bet AS main_bet ON public.teacher.main_bet_id = main_bet.id AND
 												     main_bet.is_deleted = False LEFT JOIN
 						   public.bet AS second_bet ON public.teacher.second_bet_id = second_bet.id AND
@@ -242,6 +246,11 @@ namespace DocumentsFillerAPI.Providers
 								ID = reader.GetGuid(10),
 								HoursAmount = reader.GetInt32(11)
 							},
+							AcademicTitle = new AcademicTitleStruct
+							{
+								ID = reader.GetGuid(12),
+								Name = reader.GetString(13)
+							}
 							//MainBetID = reader.GetGuid(4),
 							//SecondBetID = reader.GetGuid(5),
 							//ExcessiveBetID = reader.GetGuid(6),
