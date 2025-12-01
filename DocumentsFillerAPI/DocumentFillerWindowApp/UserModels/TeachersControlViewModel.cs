@@ -161,7 +161,6 @@ namespace DocumentFillerWindowApp.UserModels
 		public string SecondName { get; set; }
 		public string Patronymic { get; set; }
 		public BetRecord MainBet { get; set; }
-		public BetRecord SecondBet { get; set; }
 		public BetRecord ExcessiveBet { get; set; }
 		public AcademicTitleRecord AcademicTitle { get; set; }
 	}
@@ -171,6 +170,9 @@ namespace DocumentFillerWindowApp.UserModels
 		public Guid ID { get; set; }
 		public double BetAmount { get; set; }
 		public int HoursAmount { get; set; }
+		public Guid TeacherID { get; set; }
+		public Guid DepartmentID { get; set; }
+		public bool IsAdditional { get; set; }
 	}
 
 	public record MinimalTeacherRecord
@@ -180,7 +182,6 @@ namespace DocumentFillerWindowApp.UserModels
 		public string SecondName { get; set; }
 		public string Patronymic { get; set; }
 		public Guid MainBet { get; set; }
-		public Guid SecondBet { get; set; }
 		public Guid ExcessiveBet { get; set; }
 		public MinimalTeacherRecord(TeacherRecord teacher)
 		{
@@ -189,7 +190,6 @@ namespace DocumentFillerWindowApp.UserModels
 			SecondName = teacher.SecondName;
 			Patronymic = teacher.Patronymic;
 			MainBet = teacher.MainBet.ID;
-			SecondBet = teacher.SecondBet.ID;
 			ExcessiveBet = teacher.ExcessiveBet.ID;
 		}
 

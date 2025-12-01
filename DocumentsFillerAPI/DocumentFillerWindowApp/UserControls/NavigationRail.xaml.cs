@@ -78,7 +78,7 @@ namespace DocumentFillerWindowApp.UserControls
 				{ 
 					Title = "Ставки преподавателей", 
 					IconKind = PackIconKind.Calculator,
-					Id = "Rates"
+					Id = "Bets"
 				},
 				new NavigationRailItem 
 				{ 

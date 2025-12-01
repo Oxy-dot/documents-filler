@@ -66,8 +66,8 @@ namespace DocumentsFillerAPI.Providers
 
 				string sql =
 					$@"
-					INSERT INTO public.teacher(id, first_name, second_name, patronymic, main_bet_id, second_bet_id, excessive_bet_id)
-					VALUES (@id, @firstName, @secondName, @patronymic, @mainBetID, @secondBetID, @excessiveBetID) RETURNING *;
+					INSERT INTO public.teacher(id, first_name, second_name, patronymic, main_bet_id, excessive_bet_id)
+					VALUES (@id, @firstName, @secondName, @patronymic, @mainBetID, @excessiveBetID) RETURNING *;
 					";
 
 				List<TeacherStruct> insertedTeachers = new List<TeacherStruct>();
@@ -83,9 +83,8 @@ namespace DocumentsFillerAPI.Providers
 							cmd.Parameters.AddWithValue("@firstName", teacher.FirstName);
 							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
 							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
-							cmd.Parameters.AddWithValue("@mainBetID", teacher.MainBetID); //??
-							cmd.Parameters.AddWithValue("@secondBetID", teacher.SecondBetID); //??
-							cmd.Parameters.AddWithValue("@excessiveBetID", teacher.ExcessiveBetID); //??
+							cmd.Parameters.AddWithValue("@mainBetID", teacher.MainBetID);
+							cmd.Parameters.AddWithValue("@excessiveBetID", teacher.ExcessiveBetID);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
@@ -122,7 +121,7 @@ namespace DocumentsFillerAPI.Providers
 				string sql =
 					$@"
 					UPDATE public.teacher
-					SET first_name=@firstName, second_name=@secondName, patronymic=@patronymic, main_bet_id=@mainBetID, second_bet_id=@secondBetID, excessive_bet_id=@excessiveBetID
+					SET first_name=@firstName, second_name=@secondName, patronymic=@patronymic, main_bet_id=@mainBetID, excessive_bet_id=@excessiveBetID
 					WHERE id = @id
 					";
 
@@ -139,7 +138,6 @@ namespace DocumentsFillerAPI.Providers
 							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
 							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
 							cmd.Parameters.AddWithValue("@mainBetID", teacher.MainBetID);
-							cmd.Parameters.AddWithValue("@secondBetID", teacher.SecondBetID);
 							cmd.Parameters.AddWithValue("@excessiveBetID", teacher.ExcessiveBetID);
 
 							int cnt = cmd.ExecuteNonQuery();
@@ -191,11 +189,15 @@ namespace DocumentsFillerAPI.Providers
 						   main_bet.id,
 						   main_bet.bet,
 						   main_bet.hours_amount,
-						   second_bet.id,
-						   second_bet.bet,
-						   second_bet.hours_amount,
+						   main_bet.teacher_id,
+						   main_bet.department_id,
+						   main_bet.is_additional,
 						   excessive_bet.id,
+						   excessive_bet.bet,
 						   excessive_bet.hours_amount,
+						   excessive_bet.teacher_id,
+						   excessive_bet.department_id,
+						   excessive_bet.is_additional,
 						   public.academic_title.id,
 						   public.academic_title.name,
 						   ROW_NUMBER() OVER (ORDER BY public.teacher.id ASC) AS row_id
@@ -204,8 +206,6 @@ namespace DocumentsFillerAPI.Providers
 													public.academic_title.is_deleted = False LEFT JOIN
 						   public.bet AS main_bet ON public.teacher.main_bet_id = main_bet.id AND
 												     main_bet.is_deleted = False LEFT JOIN
-						   public.bet AS second_bet ON public.teacher.second_bet_id = second_bet.id AND
-													   second_bet.is_deleted = False LEFT JOIN
 						   public.bet AS excessive_bet ON public.teacher.excessive_bet_id = excessive_bet.id AND
 														  excessive_bet.is_deleted = False
 					WHERE public.teacher.is_deleted = False
@@ -234,26 +234,24 @@ namespace DocumentsFillerAPI.Providers
 								ID = reader.GetGuid(4),
 								BetAmount = reader.GetDouble(5),
 								HoursAmount = reader.GetInt32(6),
-							},
-							SecondBet = new BetStruct
-							{
-								ID = reader.GetGuid(7),
-								BetAmount = reader.GetDouble(8),
-								HoursAmount = reader.GetInt32(9),
+								TeacherID = reader.IsDBNull(7) ? Guid.Empty : reader.GetGuid(7),
+								DepartmentID = reader.IsDBNull(8) ? Guid.Empty : reader.GetGuid(8),
+								IsAdditional = reader.IsDBNull(9) ? false : reader.GetBoolean(9)
 							},
 							ExcessiveBet = new BetStruct
 							{
 								ID = reader.GetGuid(10),
-								HoursAmount = reader.GetInt32(11)
+								BetAmount = reader.GetDouble(11),
+								HoursAmount = reader.GetInt32(12),
+								TeacherID = reader.IsDBNull(13) ? Guid.Empty : reader.GetGuid(13),
+								DepartmentID = reader.IsDBNull(14) ? Guid.Empty : reader.GetGuid(14),
+								IsAdditional = reader.IsDBNull(15) ? false : reader.GetBoolean(15)
 							},
 							AcademicTitle = new AcademicTitleStruct
 							{
-								ID = reader.GetGuid(12),
-								Name = reader.GetString(13)
+								ID = reader.GetGuid(16),
+								Name = reader.GetString(17)
 							}
-							//MainBetID = reader.GetGuid(4),
-							//SecondBetID = reader.GetGuid(5),
-							//ExcessiveBetID = reader.GetGuid(6),
 						});
 					}
 				}
@@ -280,7 +278,6 @@ namespace DocumentsFillerAPI.Providers
 						   second_name,
 						   patronymic, 
 						   main_bet_id, 
-						   second_bet_id, 
 						   excessive_bet_id,
 						   ROW_NUMBER() OVER (ORDER BY id ASC, is_deleted DESC) AS row_id
 					FROM public.teacher
@@ -302,8 +299,7 @@ namespace DocumentsFillerAPI.Providers
 							SecondName = reader.GetString(2),
 							Patronymic = reader.GetString(3),
 							MainBetID = reader.GetGuid(4),
-							SecondBetID = reader.GetGuid(5),
-							ExcessiveBetID = reader.GetGuid(6),
+							ExcessiveBetID = reader.GetGuid(5),
 						});
 					}
 				}

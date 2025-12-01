@@ -197,11 +197,6 @@ namespace DocumentFillerWindowApp.UserModels
 							HoursAmount = a.MainBet.HoursAmount,
 							Bet = a.MainBet.BetAmount,
 						} : null,
-						AdditionalBetInfo = a.SecondBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.SecondBet.HoursAmount,
-							Bet = a.SecondBet.BetAmount,
-						} : null,
 						ExcessiveBetInfo = a.ExcessiveBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
 						{
 							HoursAmount = a.ExcessiveBet.HoursAmount,
@@ -216,11 +211,6 @@ namespace DocumentFillerWindowApp.UserModels
 						{
 							HoursAmount = a.MainBet.HoursAmount,
 							Bet = a.MainBet.BetAmount,
-						} : null,
-						AdditionalBetInfo = a.SecondBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.SecondBet.HoursAmount,
-							Bet = a.SecondBet.BetAmount,
 						} : null,
 						ExcessiveBetInfo = a.ExcessiveBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
 						{
@@ -237,11 +227,6 @@ namespace DocumentFillerWindowApp.UserModels
 							HoursAmount = a.MainBet.HoursAmount,
 							Bet = a.MainBet.BetAmount,
 						} : null,
-						AdditionalBetInfo = a.SecondBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.SecondBet.HoursAmount,
-							Bet = a.SecondBet.BetAmount,
-						} : null,
 						ExcessiveBetInfo = a.ExcessiveBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
 						{
 							HoursAmount = a.ExcessiveBet.HoursAmount,
@@ -256,11 +241,6 @@ namespace DocumentFillerWindowApp.UserModels
 						{
 							HoursAmount = a.MainBet.HoursAmount,
 							Bet = a.MainBet.BetAmount,
-						} : null,
-						AdditionalBetInfo = a.SecondBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.SecondBet.HoursAmount,
-							Bet = a.SecondBet.BetAmount,
 						} : null,
 						ExcessiveBetInfo = a.ExcessiveBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
 						{

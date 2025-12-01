@@ -28,19 +28,19 @@ namespace DocumentFillerWindowApp.APIProviders
 					{
 						ID = (Guid)a["MainBet"]!["ID"]!,
 						BetAmount = (double)a["MainBet"]!["BetAmount"]!,
-						HoursAmount = (int)a["MainBet"]!["HoursAmount"]!
-					},
-					SecondBet = new BetRecord
-					{
-						ID = (Guid)a["SecondBet"]!["ID"]!,
-						BetAmount = (double)a["SecondBet"]!["BetAmount"]!,
-						HoursAmount = (int)a["SecondBet"]!["HoursAmount"]!
+						HoursAmount = (int)a["MainBet"]!["HoursAmount"]!,
+						TeacherID = (Guid)a["ID"]!,
+						DepartmentID = a["MainBet"]!["DepartmentID"] != null ? (Guid)a["MainBet"]!["DepartmentID"]! : Guid.Empty,
+						IsAdditional = a["MainBet"]!["IsAdditional"] != null ? (bool)a["MainBet"]!["IsAdditional"]! : false
 					},
 					ExcessiveBet = new BetRecord
 					{
 						ID = (Guid)a["ExcessiveBet"]!["ID"]!,
 						BetAmount = (double)a["ExcessiveBet"]!["BetAmount"]!,
-						HoursAmount = (int)a["ExcessiveBet"]!["HoursAmount"]!
+						HoursAmount = (int)a["ExcessiveBet"]!["HoursAmount"]!,
+						TeacherID = (Guid)a["ID"]!,
+						DepartmentID = a["ExcessiveBet"]!["DepartmentID"] != null ? (Guid)a["ExcessiveBet"]!["DepartmentID"]! : Guid.Empty,
+						IsAdditional = a["ExcessiveBet"]!["IsAdditional"] != null ? (bool)a["ExcessiveBet"]!["IsAdditional"]! : false
 					},
 					AcademicTitle = new AcademicTitleRecord 
 					{
@@ -76,7 +76,6 @@ namespace DocumentFillerWindowApp.APIProviders
 					SecondName = (string)a["SecondName"]!,
 					Patronymic = (string)a["Patronymic"]!,
 					MainBet = (Guid)a["MainBetID"]!,
-					SecondBet = (Guid)a["SecondBetID"]!,
 					ExcessiveBet = (Guid)a["ExcessiveBetID"]!
 				}).ToList();
 
@@ -98,7 +97,6 @@ namespace DocumentFillerWindowApp.APIProviders
 					["secondName"] = a.SecondName,
 					["patronymic"] = a.Patronymic,
 					["mainBetID"] = a.MainBet,
-					["secondBetID"] = a.SecondBet,
 					["excessiveBetID"] = a.ExcessiveBet,
 				}).ToArray();
 
@@ -121,7 +119,6 @@ namespace DocumentFillerWindowApp.APIProviders
 					SecondName = (string)a["SecondName"]!,
 					Patronymic = (string)a["Patronymic"]!,
 					MainBet = (Guid)a["MainBetID"]!,
-					SecondBet = (Guid)a["SecondBetID"]!,
 					ExcessiveBet = (Guid)a["ExcessiveBetID"]!,
 					
 				}).ToList();
@@ -146,7 +143,6 @@ namespace DocumentFillerWindowApp.APIProviders
 					["secondName"] = a.SecondName,
 					["patronymic"] = a.Patronymic,
 					["mainBetID"] = a.MainBet,
-					["secondBetID"] = a.SecondBet,
 					["excessiveBetID"] = a.ExcessiveBet,
 				}).ToArray();
 				var requestBody = new JsonObject()

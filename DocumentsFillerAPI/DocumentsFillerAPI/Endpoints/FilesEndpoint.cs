@@ -34,12 +34,15 @@ namespace DocumentsFillerAPI.Endpoints
 			try
 			{
 				var jBody = Request.GetBodyJson();
+
+
+
+
 				var filesToInsert = jBody?["insert"]?.AsArray()?.Select(a => new FileStruct
 				{
-					FileName = (string)a["fileName"]!,
 					FileType = (Guid)a["fileType"]!,
 					CreationDate = DateTime.UtcNow,
-					Content = a["content"]!.AsObject(),
+					//Path = (string)a["path"]!,
 				}).ToList() ?? new List<FileStruct>();
 
 				if (filesToInsert.Count == 0)
@@ -108,6 +111,8 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
+				Guid typeID = new Guid("456dff6f-a4a1-48ef-b5c3-993083bb237d\r\n");
+
 				var jBody = Request.GetBodyJson()["staffingTableInfo"]!;
 
 				var data = new ExcelFilesGenerator.StaffingTemplateInputData()
@@ -156,6 +161,8 @@ namespace DocumentsFillerAPI.Endpoints
 		[HttpPost("generateServiceMemo")]
 		public async Task<IActionResult> GenerateServiceMemo()
 		{
+			Guid typeID = new Guid("764ee68c-c541-43cf-a4dc-f3284d950ffd");
+
 			try
 			{
 				var jBody = Request.GetBodyJson()["serviceMemoInfo"]!;
@@ -177,11 +184,6 @@ namespace DocumentsFillerAPI.Endpoints
 							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
 							Bet = (double)a["mainBetInfo"]!["bet"]!,
 						} : null,
-						AdditionalBetInfo = a["additionalBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["additionalBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["additionalBetInfo"]!["bet"]!,
-						} : null,
 						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
 						{
 							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
@@ -196,11 +198,6 @@ namespace DocumentsFillerAPI.Endpoints
 						{
 							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
 							Bet = (double)a["mainBetInfo"]!["bet"]!,
-						} : null,
-						AdditionalBetInfo = a["additionalBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["additionalBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["additionalBetInfo"]!["bet"]!,
 						} : null,
 						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
 						{
@@ -217,11 +214,6 @@ namespace DocumentsFillerAPI.Endpoints
 							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
 							Bet = (double)a["mainBetInfo"]!["bet"]!,
 						} : null,
-						AdditionalBetInfo = a["additionalBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["additionalBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["additionalBetInfo"]!["bet"]!,
-						} : null,
 						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
 						{
 							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
@@ -236,11 +228,6 @@ namespace DocumentsFillerAPI.Endpoints
 						{
 							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
 							Bet = (double)a["mainBetInfo"]!["bet"]!,
-						} : null,
-						AdditionalBetInfo = a["additionalBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["additionalBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["additionalBetInfo"]!["bet"]!,
 						} : null,
 						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
 						{

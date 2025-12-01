@@ -101,11 +101,6 @@ namespace DocumentFillerWindowApp.APIProviders
 								["hoursAmount"] = a.MainBetInfo.Value.HoursAmount,
 								["bet"] = a.MainBetInfo.Value.Bet
 							} : null,
-							["additionalBetInfo"] = a.AdditionalBetInfo != null ? new JsonObject()
-							{
-								["hoursAmount"] = a.AdditionalBetInfo.Value.HoursAmount,
-								["bet"] = a.AdditionalBetInfo.Value.Bet
-							} : null,
 							["excessiveBetInfo"] = a.ExcessiveBetInfo != null ? new JsonObject()
 							{
 								["hoursAmount"] = a.ExcessiveBetInfo.Value.HoursAmount,
@@ -120,11 +115,6 @@ namespace DocumentFillerWindowApp.APIProviders
 							{
 								["hoursAmount"] = a.MainBetInfo.Value.HoursAmount,
 								["bet"] = a.MainBetInfo.Value.Bet
-							} : null,
-							["additionalBetInfo"] = a.AdditionalBetInfo != null ? new JsonObject()
-							{
-								["hoursAmount"] = a.AdditionalBetInfo.Value.HoursAmount,
-								["bet"] = a.AdditionalBetInfo.Value.Bet
 							} : null,
 							["excessiveBetInfo"] = a.ExcessiveBetInfo != null ? new JsonObject()
 							{
@@ -141,11 +131,6 @@ namespace DocumentFillerWindowApp.APIProviders
 								["hoursAmount"] = a.MainBetInfo.Value.HoursAmount,
 								["bet"] = a.MainBetInfo.Value.Bet
 							} : null,
-							["additionalBetInfo"] = a.AdditionalBetInfo != null ? new JsonObject()
-							{
-								["hoursAmount"] = a.AdditionalBetInfo.Value.HoursAmount,
-								["bet"] = a.AdditionalBetInfo.Value.Bet
-							} : null,
 							["excessiveBetInfo"] = a.ExcessiveBetInfo != null ? new JsonObject()
 							{
 								["hoursAmount"] = a.ExcessiveBetInfo.Value.HoursAmount,
@@ -160,11 +145,6 @@ namespace DocumentFillerWindowApp.APIProviders
 							{
 								["hoursAmount"] = a.MainBetInfo.Value.HoursAmount,
 								["bet"] = a.MainBetInfo.Value.Bet
-							} : null,
-							["additionalBetInfo"] = a.AdditionalBetInfo != null ? new JsonObject()
-							{
-								["hoursAmount"] = a.AdditionalBetInfo.Value.HoursAmount,
-								["bet"] = a.AdditionalBetInfo.Value.Bet
 							} : null,
 							["excessiveBetInfo"] = a.ExcessiveBetInfo != null ? new JsonObject()
 							{
@@ -209,7 +189,6 @@ namespace DocumentFillerWindowApp.APIProviders
 			public string FullName { get; init; }
 			public string AcademicTitle { get; init; }
 			public ServiceMemoTemplateBetStructData? MainBetInfo { get; init; }
-			public ServiceMemoTemplateBetStructData? AdditionalBetInfo { get; init; }
 			public ServiceMemoTemplateBetStructData? ExcessiveBetInfo { get; init; }
 		}
 

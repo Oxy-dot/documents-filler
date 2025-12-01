@@ -46,8 +46,6 @@
                 <DataGridTextColumn Binding="{Binding Patronymic}" Header="Отчество"/>
                 <DataGridTextColumn Binding="{Binding MainBet.BetAmount}" Header="Доля ставки (Нормативная)"/>
                 <DataGridTextColumn Binding="{Binding MainBet.HoursAmount}" Header="Часы (Нормативная)"/>
-                <DataGridTextColumn Binding="{Binding SecondBet.BetAmount}" Header="Доля ставки (Сверхнормативная)"/>
-                <DataGridTextColumn Binding="{Binding SecondBet.HoursAmount}" Header="Часы (Сверхнормативная)"/>
                 <DataGridTextColumn Binding="{Binding ExcessiveBet.HoursAmount}" Header="Часы (Дополнительная)"/>
             </DataGrid.Columns>
         </DataGrid>

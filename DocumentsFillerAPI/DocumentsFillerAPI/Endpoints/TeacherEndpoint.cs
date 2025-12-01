@@ -98,7 +98,6 @@ namespace DocumentsFillerAPI.Endpoints
 					SecondName = (string)a["secondName"]!,
 					Patronymic = (string)a["patronymic"]!,
 					MainBetID = (Guid)a["mainBetID"]!,
-					SecondBetID = (Guid)a["secondBetID"]!,
 					ExcessiveBetID = (Guid)a["excessiveBetID"]!,
 				}).ToList() ?? new List<TeacherStruct>();
 

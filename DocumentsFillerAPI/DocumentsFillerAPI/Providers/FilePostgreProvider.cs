@@ -1,8 +1,5 @@
 ﻿using DocumentsFillerAPI.Controllers;
-using DocumentsFillerAPI.Structures;
 using Npgsql;
-using System.Collections.Generic;
-using System.Text.Json.Nodes;
 
 namespace DocumentsFillerAPI.Providers
 {
@@ -19,9 +16,8 @@ namespace DocumentsFillerAPI.Providers
 				string sql =
 					$@"
 					SELECT file.id AS file_id,
-						   file.file_name,
 						   file.creation_date,
-						   file.content,
+						   file.path,
 						   file_type.type_name,
 						   ROW_NUMBER() OVER (ORDER BY file.id ASC, file.is_deleted DESC) AS row_id
 					FROM public.file INNER JOIN
@@ -41,10 +37,9 @@ namespace DocumentsFillerAPI.Providers
 						files.Add(new FileForListStruct
 						{
 							FileID = reader.GetGuid(0),
-							FileName = reader.GetString(1),
-							CreationDate = reader.GetDateTime(2),
-							Content = JsonNode.Parse(reader.GetString(3))!.AsObject(),
-							FileType = reader.GetString(4),
+							CreationDate = reader.GetDateTime(1),
+							Path = reader.GetString(2),
+							FileType = reader.GetString(3),
 						});
 					}
 				}
@@ -66,7 +61,7 @@ namespace DocumentsFillerAPI.Providers
 
 				string sql =
 					$@"
-					INSERT INTO public.files(id, file_name, creation_date, content, type_id)
+					INSERT INTO public.files(id, creation_date, type_id, path)
 					VALUES (@id, @name, @date, @content, @typeId) RETURNING *;
 					";
 
@@ -80,10 +75,9 @@ namespace DocumentsFillerAPI.Providers
 						try
 						{
 							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
-							cmd.Parameters.AddWithValue("@name", file.FileName);
 							cmd.Parameters.AddWithValue("@date", file.CreationDate);
-							cmd.Parameters.AddWithValue("@content", file.Content.ToString());
 							cmd.Parameters.AddWithValue("@typeId", file.FileType);
+							cmd.Parameters.AddWithValue("@path", file.Path);
 
 							var reader = cmd.ExecuteReader();
 							insertedFiles.Add(new MinimalFileInfoStruct
@@ -94,7 +88,7 @@ namespace DocumentsFillerAPI.Providers
 						}
 						catch (Exception ex)
 						{
-							notInsertedFiles.Add($"Row with name={file.FileName} wasnt inserted, erorr: {ex.Message}");
+							notInsertedFiles.Add($"Row with name={file.Path} wasnt created, erorr: {ex.Message}");
 						}
 					}
 				}
@@ -175,18 +169,16 @@ namespace DocumentsFillerAPI.Providers
 	public record FileStruct
 	{
 		public Guid FileID { get; init; }
-		public string FileName { get; init; }
 		public DateTime CreationDate { get; init; }
-		public JsonObject Content { get; init; }
+		public string Path { get; init; }
 		public Guid FileType { get; init; }
 	}
 
 	public record FileForListStruct
 	{
 		public Guid FileID { get; init; }
-		public string FileName { get; init; }
 		public DateTime CreationDate { get; init; }
-		public JsonObject Content { get; init; }
+		public string Path { get; init; }
 		public string FileType { get; init; }
 	}
 }

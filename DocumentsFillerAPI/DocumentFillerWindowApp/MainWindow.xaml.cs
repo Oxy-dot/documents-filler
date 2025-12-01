@@ -50,8 +50,8 @@ namespace DocumentFillerWindowApp
 				case "Staffing":
 					ContentArea.Content = CreatePlaceholderContent("Штатное расписание", "Staffing");
 					break;
-				case "Rates":
-					ContentArea.Content = CreatePlaceholderContent("Ставки преподавателей", "Rates");
+				case "Bets":
+					ContentArea.Content = new UserControls.Bets();
 					break;
 				case "Accounting":
 					ContentArea.Content = CreatePlaceholderContent("Учет", "Accounting");

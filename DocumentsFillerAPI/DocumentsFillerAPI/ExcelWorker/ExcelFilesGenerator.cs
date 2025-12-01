@@ -436,7 +436,6 @@ namespace DocumentsFillerAPI.ExcelWorker
 			public string FullName { get; init; }
 			public string AcademicTitle { get; init; }
 			public ServiceMemoTemplateBetStruct? MainBetInfo { get; init; }
-			public ServiceMemoTemplateBetStruct? AdditionalBetInfo { get; init; }
 			public ServiceMemoTemplateBetStruct? ExcessiveBetInfo { get; init; }
 		}
 
