@@ -26,7 +26,8 @@ namespace DocumentFillerWindowApp.APIProviders
 				var departments = response.Response["departments"]!.AsArray().Select(a => new DepartmentRecord
 				{
 					ID = (Guid)a["ID"]!,
-					Name = (string)a["Name"]!
+					Name = (string)a["Name"]!,
+					FullName = a["FullName"] != null ? (string)a["FullName"]! : ""
 				}).ToList();
 
 				return ("", departments);
@@ -58,7 +59,8 @@ namespace DocumentFillerWindowApp.APIProviders
 				var inserted = response.Response["inserted"]!.AsArray().Select(a => new DepartmentRecord
 				{
 					ID = (Guid)a["ID"]!,
-					Name = (string)a["Name"]!
+					Name = (string)a["Name"]!,
+					FullName = a["FullName"] != null ? (string)a["FullName"]! : ""
 				}).ToList();
 
 				var messages = response.Response["notInsertedMessages"]!.AsArray().Select(a => (string)a!).ToList();
@@ -81,10 +83,11 @@ namespace DocumentFillerWindowApp.APIProviders
 				if (response.Response == null)
 					throw new Exception("Response is null");
 
-				var departments = response.Response["departments"]!.AsArray().Select(a => new DepartmentRecord
+				var departments = response.Response["titles"]!.AsArray().Select(a => new DepartmentRecord
 				{
 					ID = (Guid)a["ID"]!,
-					Name = (string)a["Name"]!
+					Name = (string)a["Name"]!,
+					FullName = a["FullName"] != null ? (string)a["FullName"]! : ""
 				}).ToList();
 
 				return new(departments, "");
@@ -99,7 +102,12 @@ namespace DocumentFillerWindowApp.APIProviders
 		{
 			try
 			{
-				var jsonTitles = departmentsToUpdate.Select(a => new JsonObject() { ["id"] = a.ID, ["name"] = a.Name }).ToArray();
+				var jsonTitles = departmentsToUpdate.Select(a => new JsonObject() 
+				{ 
+					["id"] = a.ID, 
+					["name"] = a.Name,
+					["fullName"] = a.FullName
+				}).ToArray();
 				var requestBody = new JsonObject()
 				{
 					["update"] = new JsonArray(jsonTitles)

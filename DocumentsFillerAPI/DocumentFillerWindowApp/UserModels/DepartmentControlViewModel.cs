@@ -44,7 +44,8 @@ namespace DocumentFillerWindowApp.UserModels
 				}
 
 				var originaItem = _lastDepartments.First(a => a.ID == item.ID);
-				if (item.Name != originaItem.Name)
+				if (item.Name != originaItem.Name || 
+					item.FullName != originaItem.FullName)
 				{
 					changes.Add(item);
 					continue;
@@ -61,6 +62,7 @@ namespace DocumentFillerWindowApp.UserModels
 				UpdateDepartments(toUpdate);
 
 			UpdateDepartmentsFromAPI();
+			_saveChangesShowButton = Visibility.Hidden;
 		}
 
 		public void InsertDepartments(List<string> names)
@@ -120,6 +122,20 @@ namespace DocumentFillerWindowApp.UserModels
 			Departments = new ObservableCollection<DepartmentRecord>(_departmentAPI.Get().Result.Departments);
 			Departments.CollectionChanged += OnCollectionChanged;
 			OnPropertyChanged("Departments");
+
+			foreach (var department in Departments)
+			{
+				department.PropertyChanged += OnInternalPropertyChanged;
+			}
+		}
+
+		private void OnInternalPropertyChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			if (_saveChangesShowButton == Visibility.Hidden)
+			{
+				_saveChangesShowButton = Visibility.Visible;
+				OnPropertyChanged("SaveChangesShowButton");
+			}
 		}
 
 		private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -136,11 +152,50 @@ namespace DocumentFillerWindowApp.UserModels
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
+
+
 	}
 
-	public record DepartmentRecord
+	public record DepartmentRecord : INotifyPropertyChanged
 	{
-		public Guid ID { get; set; }
-		public string Name { get; set; }
+		private Guid _ID;
+		private string _name;
+		private string _fullName;
+
+		public Guid ID 
+		{ 
+			get => _ID; 
+			set 
+			{
+				_ID = value;
+				OnPropertyChanged();
+			} 
+		}
+
+		public string Name 
+		{ 
+			get => _name; 
+			set
+			{
+				_name = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public string FullName 
+		{
+			get => _fullName; 
+			set
+			{
+				_fullName = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 	}
 }

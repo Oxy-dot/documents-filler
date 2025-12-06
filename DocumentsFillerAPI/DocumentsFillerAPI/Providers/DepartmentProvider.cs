@@ -73,8 +73,8 @@ namespace DocumentsFillerAPI.Providers
 
 				string sql =
 					$@"
-					INSERT INTO public.department(id, name)
-					VALUES (@id, @name) RETURNING *;
+					INSERT INTO public.department(id, name, full_name)
+					VALUES (@id, @name, @fullName) RETURNING *;
 					";
 
 				List<DepartmentStruct> insertedValues = new List<DepartmentStruct>();
@@ -88,13 +88,18 @@ namespace DocumentsFillerAPI.Providers
 						{
 							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
 							cmd.Parameters.AddWithValue("@name", department.Name);
+							cmd.Parameters.AddWithValue("@fullName", department.FullName ?? (object)DBNull.Value);
 
 							var reader = cmd.ExecuteReader();
-							insertedValues.Add(new DepartmentStruct
+							if (reader.Read())
 							{
-								ID = reader.GetGuid(0),
-								Name = reader.GetString(1)
-							});
+								insertedValues.Add(new DepartmentStruct
+								{
+									ID = reader.GetGuid(0),
+									Name = reader.GetString(1),
+									FullName = reader.IsDBNull(2) ? "" : reader.GetString(2)
+								});
+							}
 						}
 						catch (Exception ex)
 						{
@@ -120,7 +125,8 @@ namespace DocumentsFillerAPI.Providers
 				string sql =
 					$@"
 					SELECT public.departments.id,
-						   public.departments.name
+						   public.departments.name,
+						   public.departments.full_name
 					FROM public.departments
 					WHERE public.departments.id like '%@seachText%' OR
 						  public.departments.name like '%@seachText%'";
@@ -137,7 +143,8 @@ namespace DocumentsFillerAPI.Providers
 						results.Add(new DepartmentStruct
 						{
 							ID = reader.GetGuid(0),
-							Name = reader.GetString(1)
+							Name = reader.GetString(1),
+							FullName = reader.IsDBNull(2) ? "" : reader.GetString(2)
 						});
 					}
 				}
@@ -159,7 +166,7 @@ namespace DocumentsFillerAPI.Providers
 				string sql =
 					$@"
 					UPDATE public.department
-					SET name=@name
+					SET name=@name, full_name=@fullName
 					WHERE id = @id
 					";
 
@@ -173,6 +180,7 @@ namespace DocumentsFillerAPI.Providers
 						{
 							cmd.Parameters.AddWithValue("@id", department.ID);
 							cmd.Parameters.AddWithValue("@name", department.Name);
+							cmd.Parameters.AddWithValue("@fullName", department.FullName ?? (object)DBNull.Value);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
@@ -218,6 +226,7 @@ namespace DocumentsFillerAPI.Providers
 					$@"
 					SELECT id,
 						   name,
+						   full_name,
 						   ROW_NUMBER() OVER (ORDER BY id ASC, is_deleted DESC) AS row_id
 					FROM public.department
 					WHERE is_deleted = False
@@ -235,6 +244,7 @@ namespace DocumentsFillerAPI.Providers
 						{
 							ID = reader.GetGuid(0),
 							Name = reader.GetString(1),
+							FullName = reader.IsDBNull(2) ? "" : reader.GetString(2),
 						});
 					}
 				}

@@ -60,7 +60,7 @@ namespace DocumentsFillerAPI.Providers
 						int cnt = cmd.ExecuteNonQuery();
 						if (cnt != 1)
 							//and bet = { bet.IsAdditional } and bet = { bet.IsExcessive }
-							throw new Exception($"Row with bet={bet.BetAmount} and bet={bet.HoursAmount} wasnt inserted");
+							throw new Exception($"Row with bet={bet.BetAmount} and bet={bet.HoursAmount} for te {bet.TeacherID} wasnt inserted");
 					}
 				}
 

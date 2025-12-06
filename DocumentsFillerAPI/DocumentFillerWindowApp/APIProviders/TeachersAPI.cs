@@ -24,24 +24,6 @@ namespace DocumentFillerWindowApp.APIProviders
 					FirstName = (string)a["FirstName"]!,
 					SecondName = (string)a["SecondName"]!,
 					Patronymic = (string)a["Patronymic"]!,
-					MainBet = new BetRecord
-					{
-						ID = (Guid)a["MainBet"]!["ID"]!,
-						BetAmount = (double)a["MainBet"]!["BetAmount"]!,
-						HoursAmount = (int)a["MainBet"]!["HoursAmount"]!,
-						TeacherID = (Guid)a["ID"]!,
-						DepartmentID = a["MainBet"]!["DepartmentID"] != null ? (Guid)a["MainBet"]!["DepartmentID"]! : Guid.Empty,
-						IsAdditional = a["MainBet"]!["IsAdditional"] != null ? (bool)a["MainBet"]!["IsAdditional"]! : false
-					},
-					ExcessiveBet = new BetRecord
-					{
-						ID = (Guid)a["ExcessiveBet"]!["ID"]!,
-						BetAmount = (double)a["ExcessiveBet"]!["BetAmount"]!,
-						HoursAmount = (int)a["ExcessiveBet"]!["HoursAmount"]!,
-						TeacherID = (Guid)a["ID"]!,
-						DepartmentID = a["ExcessiveBet"]!["DepartmentID"] != null ? (Guid)a["ExcessiveBet"]!["DepartmentID"]! : Guid.Empty,
-						IsAdditional = a["ExcessiveBet"]!["IsAdditional"] != null ? (bool)a["ExcessiveBet"]!["IsAdditional"]! : false
-					},
 					AcademicTitle = new AcademicTitleRecord 
 					{
 						ID = (Guid)a["AcademicTitle"]!["ID"]!,
@@ -75,8 +57,6 @@ namespace DocumentFillerWindowApp.APIProviders
 					FirstName = (string)a["FirstName"]!,
 					SecondName = (string)a["SecondName"]!,
 					Patronymic = (string)a["Patronymic"]!,
-					MainBet = (Guid)a["MainBetID"]!,
-					ExcessiveBet = (Guid)a["ExcessiveBetID"]!
 				}).ToList();
 
 				return ("", teachers);
@@ -96,8 +76,6 @@ namespace DocumentFillerWindowApp.APIProviders
 					["firstName"] = a.FirstName,
 					["secondName"] = a.SecondName,
 					["patronymic"] = a.Patronymic,
-					["mainBetID"] = a.MainBet,
-					["excessiveBetID"] = a.ExcessiveBet,
 				}).ToArray();
 
 				var requestBody = new JsonObject()
@@ -118,9 +96,6 @@ namespace DocumentFillerWindowApp.APIProviders
 					FirstName = (string)a["FirstName"]!,
 					SecondName = (string)a["SecondName"]!,
 					Patronymic = (string)a["Patronymic"]!,
-					MainBet = (Guid)a["MainBetID"]!,
-					ExcessiveBet = (Guid)a["ExcessiveBetID"]!,
-					
 				}).ToList();
 
 				var messages = response.Response["notInsertedMessages"]!.AsArray().Select(a => (string)a!).ToList();
@@ -142,8 +117,6 @@ namespace DocumentFillerWindowApp.APIProviders
 					["firstName"] = a.FirstName,
 					["secondName"] = a.SecondName,
 					["patronymic"] = a.Patronymic,
-					["mainBetID"] = a.MainBet,
-					["excessiveBetID"] = a.ExcessiveBet,
 				}).ToArray();
 				var requestBody = new JsonObject()
 				{
@@ -197,6 +170,41 @@ namespace DocumentFillerWindowApp.APIProviders
 			catch (Exception ex)
 			{
 				return new(ex.Message, new());
+			}
+		}
+
+		public async Task<(string Message, bool IsSuccess)> InsertTeachersFullInfo(Guid departmentID, List<(string FullName, double? MainBet, int? MainBetHours, double? ExcessiveBet, int? ExcessiveBetHours)> teachersInfo)
+		{
+			try
+			{
+				var jsonTeachers = teachersInfo.Select(a => new JsonObject()
+				{
+					["fullName"] = a.FullName,
+					["mainBet"] = a.MainBet.HasValue ? a.MainBet.Value : null,
+					["mainBetHours"] = a.MainBetHours.HasValue ? a.MainBetHours.Value : null,
+					["excessiveBet"] = a.ExcessiveBet.HasValue ? a.ExcessiveBet.Value : null,
+					["excessiveBetHours"] = a.ExcessiveBetHours.HasValue ? a.ExcessiveBetHours.Value : null
+				}).ToArray();
+
+				var requestBody = new JsonObject()
+				{
+					["departmentID"] = departmentID,
+					["insertTeachersFullInfo"] = new JsonArray(jsonTeachers)
+				};
+
+				var response = await StaticHttpClient.Post<JsonObject>(className, "insertTeachersFullInfo", requestBody);
+				if (!response.IsSuccess)
+					throw new Exception(response.Message);
+
+				if (response.Response == null)
+					throw new Exception("Response is null");
+
+				var message = response.Response["message"] != null ? (string)response.Response["message"]! : "";
+				return (message, response.IsSuccess);
+			}
+			catch (Exception ex)
+			{
+				return (ex.Message, false);
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Net.Http;
 using System.Text.Json.Nodes;
+using System.Net.Http.Headers;
 
 namespace DocumentFillerWindowApp.APIProviders
 {
@@ -81,6 +82,34 @@ namespace DocumentFillerWindowApp.APIProviders
 				return new(default, $"StatusCode: {result.StatusCode}; Message: {resultStream}", false);
 
 			return new(resultStream, "Success", true);
+		}
+
+		public static async Task<(T Response, string Message, bool IsSuccess)> PostFile<T>(string controller, string method, Stream fileStream, string fileName, CancellationToken ct = default) where T : JsonNode
+		{
+			try
+			{
+				string uri = $"{SERVER_URL}/{controller.Trim()}/{method.Trim()}";
+
+				using (var multipartContent = new MultipartFormDataContent())
+				{
+					fileStream.Position = 0;
+					var streamContent = new StreamContent(fileStream);
+					streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+					multipartContent.Add(streamContent, "file", fileName);
+
+					var result = await _httpClient.PostAsync(uri, multipartContent, ct);
+					var resultString = await result.Content.ReadAsStringAsync();
+
+					if (!result.IsSuccessStatusCode)
+						return new(default, $"StatusCode: {result.StatusCode}; Message: {resultString}", false);
+
+					return new((T)JsonNode.Parse(resultString), "Success", true);
+				}
+			}
+			catch (Exception ex)
+			{
+				return new(default, ex.Message, false);
+			}
 		}
 	}
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DocumentFillerWindowApp.ModalWindows;
+using MaterialDesignThemes.Wpf;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -12,10 +14,10 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using MaterialDesignThemes.Wpf;
 
 namespace DocumentFillerWindowApp.UserControls
 {
@@ -70,21 +72,9 @@ namespace DocumentFillerWindowApp.UserControls
 				},
 				new NavigationRailItem 
 				{ 
-					Title = "Штатное расписание", 
-					IconKind = PackIconKind.FileDocumentEdit,
-					Id = "Staffing"
-				},
-				new NavigationRailItem 
-				{ 
 					Title = "Ставки преподавателей", 
 					IconKind = PackIconKind.Calculator,
 					Id = "Bets"
-				},
-				new NavigationRailItem 
-				{ 
-					Title = "Учет", 
-					IconKind = PackIconKind.ClipboardText,
-					Id = "Accounting"
 				},
 				new NavigationRailItem
 				{
@@ -98,6 +88,12 @@ namespace DocumentFillerWindowApp.UserControls
 					IconKind = PackIconKind.ClipboardText,
 					Id = "CreateServiceMemoTable"
 				},
+				//new NavigationRailItem
+				//{
+				//	Title = "Парсить PPS файл",
+				//	IconKind = PackIconKind.FileExcel,
+				//	Id = "ParsePPSFile"
+				//},
 			};
 
 			FileNavigatonItems = new ObservableCollection<NavigationRailItem>()
@@ -151,7 +147,16 @@ namespace DocumentFillerWindowApp.UserControls
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
-	}
+
+		private void Button_Click(object sender, RoutedEventArgs e)
+		{
+			var window = new ParsePPSFileWindow
+			{
+				Owner = Window.GetWindow(this)
+			};
+			window.ShowDialog();
+		}
+    }
 
 	public class NavigationRailItem : INotifyPropertyChanged
 	{

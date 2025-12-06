@@ -146,19 +146,19 @@ namespace DocumentFillerWindowApp.UserModels
 					{
 						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
 						AcademicTitle = a.AcademicTitle.Name,
-						Bet = a.MainBet.BetAmount,
+						Bet = 0, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
 					ExternalStaff = ExternalStaff.Select(a => new FilesAPI.StaffingTemplateRowData
 					{
 						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
 						AcademicTitle = a.AcademicTitle.Name,
-						Bet = a.MainBet.BetAmount,
+						Bet = 0, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
 					InternallStaff = InternallStaff.Select(a => new FilesAPI.StaffingTemplateRowData
 					{
 						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
 						AcademicTitle = a.AcademicTitle.Name,
-						Bet = a.MainBet.BetAmount,
+						Bet = 0, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
 				};
 

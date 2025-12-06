@@ -192,61 +192,29 @@ namespace DocumentFillerWindowApp.UserModels
 					{
 						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
 						AcademicTitle = a.AcademicTitle.Name,
-						MainBetInfo = a.MainBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.MainBet.HoursAmount,
-							Bet = a.MainBet.BetAmount,
-						} : null,
-						ExcessiveBetInfo = a.ExcessiveBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.ExcessiveBet.HoursAmount,
-							Bet = a.ExcessiveBet.BetAmount,
-						} : null,
+						MainBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
+						ExcessiveBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
 					ExternalStaff = ExternalStaff.Select(a => new FilesAPI.ServiceMemoTemplateRowData
 					{
 						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
 						AcademicTitle = a.AcademicTitle.Name,
-						MainBetInfo = a.MainBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.MainBet.HoursAmount,
-							Bet = a.MainBet.BetAmount,
-						} : null,
-						ExcessiveBetInfo = a.ExcessiveBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.ExcessiveBet.HoursAmount,
-							Bet = a.ExcessiveBet.BetAmount,
-						} : null,
+						MainBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
+						ExcessiveBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
 					InternallStaff = InternallStaff.Select(a => new FilesAPI.ServiceMemoTemplateRowData
 					{
 						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
 						AcademicTitle = a.AcademicTitle.Name,
-						MainBetInfo = a.MainBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.MainBet.HoursAmount,
-							Bet = a.MainBet.BetAmount,
-						} : null,
-						ExcessiveBetInfo = a.ExcessiveBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.ExcessiveBet.HoursAmount,
-							Bet = a.ExcessiveBet.BetAmount,
-						} : null,
+						MainBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
+						ExcessiveBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
 					HourlyWorkers = HourlyWorkers.Select(a => new FilesAPI.ServiceMemoTemplateRowData
 					{
 						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
 						AcademicTitle = a.AcademicTitle.Name,
-						MainBetInfo = a.MainBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.MainBet.HoursAmount,
-							Bet = a.MainBet.BetAmount,
-						} : null,
-						ExcessiveBetInfo = a.ExcessiveBet != null ? new FilesAPI.ServiceMemoTemplateBetStructData()
-						{
-							HoursAmount = a.ExcessiveBet.HoursAmount,
-							Bet = a.ExcessiveBet.BetAmount,
-						} : null,
+						MainBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
+						ExcessiveBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
 				};
 

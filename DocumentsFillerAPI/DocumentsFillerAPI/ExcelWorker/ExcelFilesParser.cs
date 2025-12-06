@@ -62,8 +62,9 @@ namespace DocumentsFillerAPI.ExcelHelper
 						rows.Add(new PPSParsedRow
 						{
 							MainBet = (mainBetCell?.CellType ?? CellType.Blank) == CellType.Blank ? null : mainBetCell!.NumericCellValue,
-							AdditionalBet = (additionalBetCell?.CellType ?? CellType.Blank) == CellType.Blank ? null : additionalBetCell!.NumericCellValue,
-							ExcessiveHours = excessiveHoursCell.CellType == CellType.Blank ? null : excessiveHoursCell!.NumericCellValue,
+							MainBetHours = (mainBetCell?.CellType ?? CellType.Blank) == CellType.Blank ? null : (int)Math.Ceiling((mainBetCell!.NumericCellValue - (additionalBetCell?.NumericCellValue ?? 0)) * 750),
+							ExcessiveBetHours = excessiveHoursCell.CellType == CellType.Blank ? null : excessiveHoursCell!.NumericCellValue,
+							ExcessibeBet = excessiveHoursCell.CellType == CellType.Blank ? null : excessiveHoursCell!.NumericCellValue / 750,
 							ShortFullName = fullNameCell.StringCellValue,
 						});
 					});
@@ -80,8 +81,9 @@ namespace DocumentsFillerAPI.ExcelHelper
 		public record struct PPSParsedRow
 		{
 			public double? MainBet { get; init; }
-			public double? AdditionalBet { get; init; }
-			public double? ExcessiveHours { get; init; }
+			public int? MainBetHours { get; init; }
+			public double? ExcessiveBetHours { get; init; }
+			public double? ExcessibeBet { get; init; }
 			public string ShortFullName { get; init; }
 		}
 	}

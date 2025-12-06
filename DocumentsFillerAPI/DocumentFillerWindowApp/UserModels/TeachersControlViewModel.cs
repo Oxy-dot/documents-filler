@@ -1,14 +1,8 @@
 ﻿using DocumentFillerWindowApp.APIProviders;
-using DocumentFillerWindowApp.UserControls;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace DocumentFillerWindowApp.UserModels
@@ -16,6 +10,7 @@ namespace DocumentFillerWindowApp.UserModels
 	internal class TeachersControlViewModel : INotifyPropertyChanged
 	{
 		private TeachersAPI _teachersAPI;
+		private AcademicTitlesAPI _titlesAPI;
 		private List<TeacherRecord> _lastTeachers;
 
 		public ObservableCollection<TeacherRecord> Teachers { get; set; } = new ObservableCollection<TeacherRecord>();
@@ -25,10 +20,15 @@ namespace DocumentFillerWindowApp.UserModels
 			get => _saveChangesShowButton;
 		}
 
+		public List<AcademicTitleRecord> AcademicTitles { get; set; } = new List<AcademicTitleRecord>();
+
 		public TeachersControlViewModel() 
 		{
 			_teachersAPI = new TeachersAPI();
+			_titlesAPI = new AcademicTitlesAPI();
+
 			UpdateTeachersFromAPI();
+			UpdateAcademicTitlesFromAPI();
 		}
 
 		public void FindChangesAndUpdate()
@@ -61,6 +61,7 @@ namespace DocumentFillerWindowApp.UserModels
 				UpdateTeachers(toUpdate);
 
 			UpdateTeachersFromAPI();
+			_saveChangesShowButton = Visibility.Hidden;
 		}
 
 		public void InsertTeachers(List<TeacherRecord> teachers)
@@ -130,6 +131,13 @@ namespace DocumentFillerWindowApp.UserModels
 			OnPropertyChanged("Teachers");
 		}
 
+		private void UpdateAcademicTitlesFromAPI()
+		{
+			var getTitlesResult = _titlesAPI.Get().Result;
+			if (string.IsNullOrEmpty(getTitlesResult.Message))
+				AcademicTitles = getTitlesResult.Titles;
+		}
+
 		private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			if (_saveChangesShowButton == Visibility.Hidden)
@@ -154,15 +162,19 @@ namespace DocumentFillerWindowApp.UserModels
 		}
 	}
 
-	public record TeacherRecord
+	public record TeacherRecord : INotifyPropertyChanged
 	{
 		public Guid ID { get; set; }
 		public string FirstName { get; set; }
 		public string SecondName { get; set; }
 		public string Patronymic { get; set; }
-		public BetRecord MainBet { get; set; }
-		public BetRecord ExcessiveBet { get; set; }
-		public AcademicTitleRecord AcademicTitle { get; set; }
+		public AcademicTitleRecord? AcademicTitle { get; set; }
+
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 	}
 
 	public record BetRecord
@@ -181,16 +193,12 @@ namespace DocumentFillerWindowApp.UserModels
 		public string FirstName { get; set; }
 		public string SecondName { get; set; }
 		public string Patronymic { get; set; }
-		public Guid MainBet { get; set; }
-		public Guid ExcessiveBet { get; set; }
 		public MinimalTeacherRecord(TeacherRecord teacher)
 		{
 			ID = teacher.ID;
 			FirstName = teacher.FirstName;
 			SecondName = teacher.SecondName;
 			Patronymic = teacher.Patronymic;
-			MainBet = teacher.MainBet.ID;
-			ExcessiveBet = teacher.ExcessiveBet.ID;
 		}
 
 		public MinimalTeacherRecord()

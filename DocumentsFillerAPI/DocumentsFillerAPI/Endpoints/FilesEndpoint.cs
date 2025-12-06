@@ -1,7 +1,9 @@
 ﻿using DocumentsFillerAPI.ExcelWorker;
+using DocumentsFillerAPI.ExcelHelper;
+using DocumentsFillerAPI.Helper;
 using DocumentsFillerAPI.Providers;
 using Microsoft.AspNetCore.Mvc;
-using NPOI.XSSF.UserModel;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -13,6 +15,7 @@ namespace DocumentsFillerAPI.Endpoints
 	{
 		private FilePostgreProvider _provider = new FilePostgreProvider();
 		private ExcelFilesGenerator _excelFilesGenerator = new ExcelFilesGenerator();
+		private ExcelFilesParser _excelFilesParser = new ExcelFilesParser();
 
 		[HttpGet("get")]
 		public async Task<IActionResult> GetFiles(uint count, uint startIndex)
@@ -28,50 +31,47 @@ namespace DocumentsFillerAPI.Endpoints
 			return Ok(jsonResult);
 		}
 
-		[HttpPost("insert")]
-		public async Task<IActionResult> InsertFiles()
-		{
-			try
-			{
-				var jBody = Request.GetBodyJson();
+		//[HttpPost("insert")]
+		//public async Task<IActionResult> InsertFiles()
+		//{
+		//	try
+		//	{
+		//		var jBody = Request.GetBodyJson();
 
+		//		var filesToInsert = jBody?["insert"]?.AsArray()?.Select(a => new FileStruct
+		//		{
+		//			FileType = (Guid)a["fileType"]!,
+		//			CreationDate = DateTime.UtcNow,
+		//			//Path = (string)a["path"]!,
+		//		}).ToList() ?? new List<FileStruct>();
 
+		//		if (filesToInsert.Count == 0)
+		//			throw new Exception("Files to insert were empty");
 
+		//		var insertFilesResult = await _provider.InsertFiles(filesToInsert);
+		//		//var filesJson = JsonSerializer.Serialize(insertFilesResult);
 
-				var filesToInsert = jBody?["insert"]?.AsArray()?.Select(a => new FileStruct
-				{
-					FileType = (Guid)a["fileType"]!,
-					CreationDate = DateTime.UtcNow,
-					//Path = (string)a["path"]!,
-				}).ToList() ?? new List<FileStruct>();
+		//		var jsonResult = new JsonObject()
+		//		{
+		//			["message"] = insertFilesResult.Message.Message,
+		//			["inserted"] = JsonNode.Parse(JsonSerializer.Serialize(insertFilesResult.InsertedFiles))!.AsArray(),
+		//			["notInserted"] = JsonNode.Parse(JsonSerializer.Serialize(insertFilesResult.NotInsertedFiles))!.AsArray(),
+		//		};
 
-				if (filesToInsert.Count == 0)
-					throw new Exception("Files to insert were empty");
+		//		return Ok(jsonResult);
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		var jsonResult = new JsonObject()
+		//		{
+		//			["message"] = ex.Message,
+		//			["inserted"] = JsonNode.Parse(JsonSerializer.Serialize(new List<MinimalFileInfoStruct>()))!.AsArray(), 
+		//			["notInserted"] = JsonNode.Parse(JsonSerializer.Serialize(new List<string>()))!.AsArray(), 
+		//		};
 
-				var insertFilesResult = await _provider.InsertFiles(filesToInsert);
-				//var filesJson = JsonSerializer.Serialize(insertFilesResult);
-
-				var jsonResult = new JsonObject()
-				{
-					["message"] = insertFilesResult.Message.Message,
-					["inserted"] = JsonNode.Parse(JsonSerializer.Serialize(insertFilesResult.InsertedFiles))!.AsArray(),
-					["notInserted"] = JsonNode.Parse(JsonSerializer.Serialize(insertFilesResult.NotInsertedFiles))!.AsArray(),
-				};
-
-				return Ok(jsonResult);
-			}
-			catch (Exception ex)
-			{
-				var jsonResult = new JsonObject()
-				{
-					["message"] = ex.Message,
-					["inserted"] = JsonNode.Parse(JsonSerializer.Serialize(new List<MinimalFileInfoStruct>()))!.AsArray(), 
-					["notInserted"] = JsonNode.Parse(JsonSerializer.Serialize(new List<string>()))!.AsArray(), 
-				};
-
-				return BadRequest(jsonResult);
-			}
-		}
+		//		return BadRequest(jsonResult);
+		//	}
+		//}
 
 		[HttpPost("delete")]
 		public async Task<IActionResult> DeleteFiles()
@@ -114,7 +114,7 @@ namespace DocumentsFillerAPI.Endpoints
 				Guid typeID = new Guid("456dff6f-a4a1-48ef-b5c3-993083bb237d\r\n");
 
 				var jBody = Request.GetBodyJson()["staffingTableInfo"]!;
-
+				string fileName = (string)jBody["fileName"]!;
 				var data = new ExcelFilesGenerator.StaffingTemplateInputData()
 				{
 					DepartmentName = (string)jBody["departmentName"]!,
@@ -145,6 +145,9 @@ namespace DocumentsFillerAPI.Endpoints
 				var stream = new MemoryStream();
 
 				_excelFilesGenerator.GenerateStaffingTemplate(data).Write(stream);
+				stream.Position = 0;
+
+				await FileHelper.AddNewFile(stream, fileName, typeID);
 
 				return new FileStreamResult(stream, "application/xml");
 			}
@@ -166,6 +169,7 @@ namespace DocumentsFillerAPI.Endpoints
 			try
 			{
 				var jBody = Request.GetBodyJson()["serviceMemoInfo"]!;
+				string fileName = (string)jBody["fileName"]!;
 
 				var data = new ExcelFilesGenerator.ServiceMemoInputData()
 				{
@@ -242,6 +246,8 @@ namespace DocumentsFillerAPI.Endpoints
 				_excelFilesGenerator.GenerateServiceMemo(data).Write(stream);
 				stream.Position = 0;
 
+				await FileHelper.AddNewFile(stream, fileName, typeID);
+
 				return new FileStreamResult(stream, "application/xml");
 			}
 			catch (Exception ex)
@@ -251,6 +257,72 @@ namespace DocumentsFillerAPI.Endpoints
 					["message"] = ex.Message,
 				};
 				return BadRequest(ex);
+			}
+		}
+
+		[HttpPost("parsePPSExcelFile")]
+		public async Task<IActionResult> ParsePPSExcelFile(IFormFile file)
+		{
+			string tempFilePath = null;
+			try
+			{
+				if (file == null || file.Length == 0)
+				{
+					return BadRequest(new JsonObject()
+					{
+						["message"] = "File is required"
+					});
+				}
+
+				// Создаем временный файл
+				tempFilePath = Path.GetTempFileName();
+				
+				using (var stream = new MemoryStream())
+				{
+					await file.CopyToAsync(stream);
+					stream.Position = 0;
+
+					// Сохраняем во временный файл
+					using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.ReadWrite))
+					{
+						await stream.CopyToAsync(fileStream);
+					}
+				}
+
+				// Открываем файл для чтения и парсинга
+				using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
+				{
+					var result = _excelFilesParser.ParsePPSExcelFile(fileStream);
+
+					var jsonResult = new JsonObject()
+					{
+						["message"] = result.Message,
+						["rows"] = JsonNode.Parse(JsonSerializer.Serialize(result.Item2))!.AsArray()
+					};
+
+					return Ok(jsonResult);
+				}
+			}
+			catch (Exception ex)
+			{
+				var jsonResult = new JsonObject()
+				{
+					["message"] = ex.Message,
+					["rows"] = JsonNode.Parse(JsonSerializer.Serialize(new List<ExcelFilesParser.PPSParsedRow>()))!.AsArray()
+				};
+				return BadRequest(jsonResult);
+			}
+			finally
+			{
+				// Удаляем временный файл
+				if (tempFilePath != null && System.IO.File.Exists(tempFilePath))
+				{
+					try
+					{
+						System.IO.File.Delete(tempFilePath);
+					}
+					catch { }
+				}
 			}
 		}
 	}

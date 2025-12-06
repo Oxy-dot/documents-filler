@@ -46,9 +46,7 @@
                 <DataGridTextColumn Binding="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}" Header="Фамилия" />
                 <DataGridTextColumn Binding="{Binding SecondName, UpdateSourceTrigger=PropertyChanged}" Header="Имя" />
                 <DataGridTextColumn Binding="{Binding Patronymic, UpdateSourceTrigger=PropertyChanged}" Header="Отчество" />
-                <DataGridTextColumn Binding="{Binding MainBet.BetAmount, UpdateSourceTrigger=PropertyChanged}" Header="Доля ставки(Нормативная)" />
-                <DataGridTextColumn Binding="{Binding MainBet.HoursAmount, UpdateSourceTrigger=PropertyChanged}" Header="Часы(Нормативная)" />
-                <DataGridTextColumn Binding="{Binding ExcessiveBet.HoursAmount, UpdateSourceTrigger=PropertyChanged}" Header="Часы(Дополнительная)" />
+                <DataGridComboBoxColumn SelectedItemBinding="{Binding AcademicTitle, UpdateSourceTrigger=PropertyChanged}" SelectedValueBinding="{Binding AcademicTitle.Name}" ItemsSource="{Binding AcademicTitles}" Header="Должность"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

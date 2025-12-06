@@ -54,6 +54,7 @@ namespace DocumentFillerWindowApp.UserModels
 				UpdateTitles(toUpdate);
 
 			UpdateTitlesFromAPI();
+			_saveChangesShowButton = Visibility.Hidden;
 		}
 
 		public void InsertTitles(List<string> names)
@@ -113,6 +114,20 @@ namespace DocumentFillerWindowApp.UserModels
 			AcademicTitles = new ObservableCollection<AcademicTitleRecord>(_titlesAPI.Get().Result.Titles);
 			AcademicTitles.CollectionChanged += OnCollectionChanged;
 			OnPropertyChanged("AcademicTitles");
+
+			foreach (var academicTitle in AcademicTitles)
+			{
+				academicTitle.PropertyChanged += OnInternalPropertyChanged; 
+			}
+		}
+
+		private void OnInternalPropertyChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			if (_saveChangesShowButton == Visibility.Hidden)
+			{
+				_saveChangesShowButton = Visibility.Visible;
+				OnPropertyChanged("SaveChangesShowButton");
+			}
 		}
 
 		private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -131,9 +146,24 @@ namespace DocumentFillerWindowApp.UserModels
 		}
 	}
 
-	public record AcademicTitleRecord
+	public record AcademicTitleRecord : INotifyPropertyChanged
 	{
 		public Guid ID { get; set; }
-		public string Name { get; set; }
+		private string _name;
+		public string Name 
+		{ 
+			get => _name; 
+			set
+			{
+				_name = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 	}
 }

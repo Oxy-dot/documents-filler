@@ -1,0 +1,101 @@
+<Window x:Class="DocumentFillerWindowApp.ModalWindows.ParsePPSFileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Парсинг PPS файла"
+        Height="600"
+        Width="1000"
+        Style="{StaticResource MaterialDesignWindow}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="Парсинг PPS Excel файла"
+                       Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+            <TextBlock x:Name="StatusTextBlock"
+                       Margin="0,4,0,0"
+                       Text="Выберите файл для парсинга"
+                       Style="{StaticResource MaterialDesignBody2TextBlock}"
+                       Foreground="{DynamicResource MaterialDesign.BodyLight}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <Button Content="Выбрать файл"
+                        MinWidth="140"
+                        Click="SelectFileButton_Click"
+                        Margin="0,0,8,0"/>
+                <Button Content="Парсить"
+                        MinWidth="140"
+                        Click="ParseButton_Click"
+                        IsEnabled="False"
+                        x:Name="ParseButton"/>
+            </StackPanel>
+            <ComboBox x:Name="DepartmentComboBox"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                      materialDesign:HintAssist.HelperText="Выберите кафедру"
+                      Width="300"
+                      HorizontalAlignment="Left"
+                      DisplayMemberPath="Name"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="2"
+                  x:Name="ResultsGrid"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  materialDesign:DataGridAssist.CellPadding="12,6"
+                  materialDesign:DataGridAssist.ColumnHeaderPadding="12,6"
+                  Margin="0,0,0,8">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding ShortFullName}" Header="ФИО"/>
+                <DataGridTextColumn Binding="{Binding MainBet}" Header="Основная ставка">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="{Binding MainBet, StringFormat={}{0:F2}}"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding MainBetHours}" Header="Часы основной ставки"/>
+                <DataGridTextColumn Binding="{Binding ExcessiveBetHours}" Header="Сверхнормативные часы">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="{Binding ExcessiveBetHours, StringFormat={}{0:F2}}"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding ExcessibeBet}" Header="Сверхнормативная ставка">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="{Binding ExcessibeBet, StringFormat={}{0:F2}}"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,8,0,0">
+            <Button Content="Сохранить полученные строки"
+                    Click="Button_Click"
+                    Margin="10, 0"></Button>
+            <Button Content="Закрыть"
+                    MinWidth="120"
+                    Style="{StaticResource MaterialDesignFlatButton}"
+                    Click="CloseButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
+

@@ -1,5 +1,6 @@
 ﻿using DocumentsFillerAPI.Controllers;
 using Npgsql;
+using System.IO;
 
 namespace DocumentsFillerAPI.Providers
 {
@@ -61,35 +62,41 @@ namespace DocumentsFillerAPI.Providers
 
 				string sql =
 					$@"
-					INSERT INTO public.files(id, creation_date, type_id, path)
-					VALUES (@id, @name, @date, @content, @typeId) RETURNING *;
+					INSERT INTO public.file(id, creation_date, type_id, path)
+					VALUES (@id, @date, @typeId, @path) RETURNING *;
 					";
 
 				List<MinimalFileInfoStruct> insertedFiles = new List<MinimalFileInfoStruct>();
 				List<string> notInsertedFiles = new List<string>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				foreach (FileStruct file in filesToInsert)
 				{
-					foreach (FileStruct file in filesToInsert)
+					try
 					{
-						try
+						await using (var cmd = dataSource.CreateCommand(sql))
 						{
-							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
+							var fileId = Guid.NewGuid();
+							cmd.Parameters.AddWithValue("@id", fileId);
 							cmd.Parameters.AddWithValue("@date", file.CreationDate);
 							cmd.Parameters.AddWithValue("@typeId", file.FileType);
 							cmd.Parameters.AddWithValue("@path", file.Path);
 
-							var reader = cmd.ExecuteReader();
-							insertedFiles.Add(new MinimalFileInfoStruct
+							await using (var reader = await cmd.ExecuteReaderAsync())
 							{
-								FileID = reader.GetGuid(0),
-								FileName = reader.GetString(1)
-							});
+								if (await reader.ReadAsync())
+								{
+									insertedFiles.Add(new MinimalFileInfoStruct
+									{
+										FileID = reader.GetGuid(0),
+										FileName = Path.GetFileName(file.Path)
+									});
+								}
+							}
 						}
-						catch (Exception ex)
-						{
-							notInsertedFiles.Add($"Row with name={file.Path} wasnt created, erorr: {ex.Message}");
-						}
+					}
+					catch (Exception ex)
+					{
+						notInsertedFiles.Add($"Row with path={file.Path} wasnt created, error: {ex.Message}");
 					}
 				}
 

@@ -35,7 +35,8 @@ namespace DocumentsFillerAPI.Endpoints
 				var jBody = Request.GetBodyJson();
 				var departmentsToInsert = jBody?["insert"]?.AsArray()?.Select(a => new DepartmentStruct
 				{
-					Name = (string)a["name"]!
+					Name = (string)a["name"]!,
+					FullName = a["fullName"] != null ? (string)a["fullName"]! : ""
 				}).ToList() ?? new List<DepartmentStruct>();
 
 				if (departmentsToInsert.Count == 0)
@@ -97,7 +98,8 @@ namespace DocumentsFillerAPI.Endpoints
 				var departmentsToUpdate = jBody?["update"]?.AsArray()?.Select(a => new DepartmentStruct
 				{
 					ID = (Guid)a["id"]!,
-					Name = (string)a["name"]!
+					Name = (string)a["name"]!,
+					FullName = a["fullName"] != null ? (string)a["fullName"]! : ""
 				}).ToList() ?? new List<DepartmentStruct>();
 
 				if (departmentsToUpdate.Count == 0)

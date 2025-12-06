@@ -53,6 +53,9 @@ namespace DocumentFillerWindowApp
 				case "Bets":
 					ContentArea.Content = new UserControls.Bets();
 					break;
+				//case "ParsePPSFile":
+				//	OpenParsePPSFileWindow();
+				//	break;
 				case "Accounting":
 					ContentArea.Content = CreatePlaceholderContent("Учет", "Accounting");
 					break;

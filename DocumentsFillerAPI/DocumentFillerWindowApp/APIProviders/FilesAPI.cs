@@ -14,10 +14,17 @@ namespace DocumentFillerWindowApp.APIProviders
 		{
 			try
 			{
+				// Добавляем расширение .xlsx, если его нет
+				if (!fileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+				{
+					fileName = fileName + ".xlsx";
+				}
+
 				var jBodyRequest = new JsonObject
 				{
 					["staffingTableInfo"] = new JsonObject()
 					{
+						["fileName"] = fileName,
 						["departmentName"] = data.DepartmentName,
 						["firstAcademicYear"] = data.FirstAcademicYear,
 						["secondAcademicYear"] = data.SecondAcademicYear,
@@ -82,10 +89,17 @@ namespace DocumentFillerWindowApp.APIProviders
 		{
 			try
 			{
+				// Добавляем расширение .xlsx, если его нет
+				if (!fileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+				{
+					fileName = fileName + ".xlsx";
+				}
+
 				var jBodyRequest = new JsonObject
 				{
 					["serviceMemoInfo"] = new JsonObject()
 					{
+						["fileName"] = fileName,
 						["firstAcademicYear"] = data.FirstAcademicYear,
 						["secondAcademicYear"] = data.SecondAcademicYear,
 						["studyPeriodDateStart"] = data.StudyPeriodDateStart,
@@ -196,6 +210,51 @@ namespace DocumentFillerWindowApp.APIProviders
 		{
 			public int HoursAmount { get; init; }
 			public double Bet { get; init; }
+		}
+
+		public async Task<(string Message, List<PPSParsedRow> Rows)> ParsePPSExcelFile(string filePath)
+		{
+			try
+			{
+				using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+				using (var memoryStream = new MemoryStream())
+				{
+					await fileStream.CopyToAsync(memoryStream);
+					memoryStream.Position = 0;
+
+					var response = await StaticHttpClient.PostFile<JsonObject>(className, "parsePPSExcelFile", memoryStream, Path.GetFileName(filePath));
+					if (!response.IsSuccess)
+						throw new Exception(response.Message);
+
+					if (response.Response == null)
+						throw new Exception("Response is null");
+
+					var message = response.Response["message"] != null ? (string)response.Response["message"]! : "";
+					var rows = response.Response["rows"]!.AsArray().Select(a => new PPSParsedRow
+					{
+						MainBet = a["MainBet"] != null ? (double?)a["MainBet"]! : null,
+						MainBetHours = a["MainBetHours"] != null ? (int?)a["MainBetHours"]! : null,
+						ExcessiveBetHours = a["ExcessiveBetHours"] != null ? (double?)a["ExcessiveBetHours"]! : null,
+						ExcessibeBet = a["ExcessibeBet"] != null ? (double?)a["ExcessibeBet"]! : null,
+						ShortFullName = a["ShortFullName"] != null ? (string)a["ShortFullName"]! : ""
+					}).ToList();
+
+					return (message, rows);
+				}
+			}
+			catch (Exception ex)
+			{
+				return (ex.Message, new List<PPSParsedRow>());
+			}
+		}
+
+		public readonly record struct PPSParsedRow
+		{
+			public double? MainBet { get; init; }
+			public int? MainBetHours { get; init; }
+			public double? ExcessiveBetHours { get; init; }
+			public double? ExcessibeBet { get; init; }
+			public string ShortFullName { get; init; }
 		}
     }
 }
