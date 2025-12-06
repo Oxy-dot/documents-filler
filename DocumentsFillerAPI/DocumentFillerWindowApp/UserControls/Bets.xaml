@@ -44,8 +44,8 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding BetAmount, UpdateSourceTrigger=PropertyChanged}" Header="Доля ставки"/>
                 <DataGridTextColumn Binding="{Binding HoursAmount, UpdateSourceTrigger=PropertyChanged}" Header="Часы"/>
-                <DataGridTextColumn Binding="{Binding TeacherFullName, UpdateSourceTrigger=PropertyChanged}" Header="ФИО преподавателя" IsReadOnly="True"/>
-                <DataGridTextColumn Binding="{Binding DepartmentName, UpdateSourceTrigger=PropertyChanged}" Header="Название кафедры" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding TeacherFullName, UpdateSourceTrigger=PropertyChanged}" Header="Преподаватель" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding DepartmentName, UpdateSourceTrigger=PropertyChanged}" Header="Кафедра" IsReadOnly="True"/>
                 <DataGridCheckBoxColumn Binding="{Binding IsAdditional, UpdateSourceTrigger=PropertyChanged}" Header="Дополнительная"/>
             </DataGrid.Columns>
         </DataGrid>

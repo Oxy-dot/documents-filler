@@ -41,12 +41,30 @@
             ScrollViewer.VerticalScrollBarVisibility="Auto"
             VirtualizingPanel.IsVirtualizing="True"
             AutoGenerateColumns="False"
+            BeginningEdit="MainGrid_BeginningEdit"
+            PreparingCellForEdit="MainGrid_PreparingCellForEdit"
+            CellEditEnding="MainGrid_CellEditEnding"
             Grid.Row="1">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}" Header="Фамилия" />
                 <DataGridTextColumn Binding="{Binding SecondName, UpdateSourceTrigger=PropertyChanged}" Header="Имя" />
                 <DataGridTextColumn Binding="{Binding Patronymic, UpdateSourceTrigger=PropertyChanged}" Header="Отчество" />
-                <DataGridComboBoxColumn SelectedItemBinding="{Binding AcademicTitle, UpdateSourceTrigger=PropertyChanged}" SelectedValueBinding="{Binding AcademicTitle.Name}" ItemsSource="{Binding AcademicTitles}" Header="Должность"/>
+                <DataGridComboBoxColumn SelectedItemBinding="{Binding AcademicTitle, UpdateSourceTrigger=LostFocus}" DisplayMemberPath="Name" Header="Должность">
+                    <DataGridComboBoxColumn.ElementStyle>
+                        <Style TargetType="ComboBox">
+                            <Setter Property="ItemsSource" Value="{Binding DataContext.AcademicTitles, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                            <Setter Property="IsHitTestVisible" Value="False"/>
+                            <Setter Property="Focusable" Value="False"/>
+                        </Style>
+                    </DataGridComboBoxColumn.ElementStyle>
+                    <DataGridComboBoxColumn.EditingElementStyle>
+                        <Style TargetType="ComboBox">
+                            <Setter Property="ItemsSource" Value="{Binding DataContext.AcademicTitles, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                            <EventSetter Event="PreviewKeyDown" Handler="ComboBox_PreviewKeyDown"/>
+                            <EventSetter Event="LostFocus" Handler="ComboBox_LostFocus"/>
+                        </Style>
+                    </DataGridComboBoxColumn.EditingElementStyle>
+                </DataGridComboBoxColumn>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

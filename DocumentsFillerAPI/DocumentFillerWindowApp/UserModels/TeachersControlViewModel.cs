@@ -129,6 +129,11 @@ namespace DocumentFillerWindowApp.UserModels
 			Teachers = new ObservableCollection<TeacherRecord>(_teachersAPI.GetFullInfo().Result.Teachers);
 			Teachers.CollectionChanged += OnCollectionChanged;
 			OnPropertyChanged("Teachers");
+
+			foreach (var teacher in Teachers)
+			{
+				teacher.PropertyChanged += OnInternalPropertyChanged;
+			}
 		}
 
 		private void UpdateAcademicTitlesFromAPI()
@@ -136,6 +141,15 @@ namespace DocumentFillerWindowApp.UserModels
 			var getTitlesResult = _titlesAPI.Get().Result;
 			if (string.IsNullOrEmpty(getTitlesResult.Message))
 				AcademicTitles = getTitlesResult.Titles;
+		}
+
+		private void OnInternalPropertyChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			if (_saveChangesShowButton == Visibility.Hidden)
+			{
+				_saveChangesShowButton = Visibility.Visible;
+				OnPropertyChanged("SaveChangesShowButton");
+			}
 		}
 
 		private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -165,10 +179,46 @@ namespace DocumentFillerWindowApp.UserModels
 	public record TeacherRecord : INotifyPropertyChanged
 	{
 		public Guid ID { get; set; }
-		public string FirstName { get; set; }
-		public string SecondName { get; set; }
-		public string Patronymic { get; set; }
-		public AcademicTitleRecord? AcademicTitle { get; set; }
+		private string _firstName;
+		public string FirstName 
+		{
+			get => _firstName;
+			set
+			{
+				_firstName = value;
+				OnPropertyChanged();
+			}
+		}
+		private string _secondName;
+		public string SecondName 
+		{
+			get => _secondName;
+			set
+			{
+				_secondName = value;
+				OnPropertyChanged();
+			}
+		}
+		private string _patronymic;
+		public string Patronymic 
+		{
+			get => _patronymic;
+			set
+			{
+				_patronymic = value;
+				OnPropertyChanged();
+			}
+		}
+		private AcademicTitleRecord? _academicTitle;
+		public AcademicTitleRecord? AcademicTitle 
+		{
+			get => _academicTitle;
+			set
+			{
+				_academicTitle = value;
+				OnPropertyChanged();
+			}
+		}
 
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
