@@ -86,7 +86,7 @@ namespace DocumentsFillerAPI.Providers
 							cmd.Parameters.AddWithValue("@firstName", teacher.FirstName);
 							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
 							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
-							cmd.Parameters.AddWithValue("@academicTitle", teacher.AcademicTitle.ID);
+							cmd.Parameters.AddWithValue("@academicTitle", teacher.AcademicTitle?.ID);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
@@ -140,7 +140,7 @@ namespace DocumentsFillerAPI.Providers
 							cmd.Parameters.AddWithValue("@firstName", teacher.FirstName);
 							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
 							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
-							cmd.Parameters.AddWithValue("@academicTitle", teacher.AcademicTitle.ID);
+							cmd.Parameters.AddWithValue("@academicTitle", teacher.AcademicTitle?.ID);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
@@ -215,7 +215,7 @@ namespace DocumentsFillerAPI.Providers
 							FirstName = reader.GetString(1),
 							SecondName = reader.GetString(2),
 							Patronymic = reader.GetString(3),
-							AcademicTitle = new AcademicTitleStruct
+							AcademicTitle = reader.IsDBNull(4) ? (AcademicTitleStruct?)null :  new AcademicTitleStruct
 							{
 								ID = reader.GetGuid(4),
 								Name = reader.GetString(5)

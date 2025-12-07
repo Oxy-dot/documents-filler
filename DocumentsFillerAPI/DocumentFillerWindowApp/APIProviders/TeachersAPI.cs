@@ -24,7 +24,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					FirstName = (string)a["FirstName"]!,
 					SecondName = (string)a["SecondName"]!,
 					Patronymic = (string)a["Patronymic"]!,
-					AcademicTitle = new AcademicTitleRecord 
+					AcademicTitle = a["AcademicTitle"] == null ? null : new AcademicTitleRecord 
 					{
 						ID = (Guid)a["AcademicTitle"]!["ID"]!,
 						Name = (string)a["AcademicTitle"]!["Name"]!,
