@@ -44,7 +44,7 @@ namespace DocumentFillerWindowApp.UserModels
 				}
 
 				var originaItem = _lastTeachers.First(a => a.ID == item.ID);
-				if (item.Equals(originaItem)) /*item.Name != originaItem.Name*/
+				if (!item.Equals(originaItem)) /*item.Name != originaItem.Name*/
 				{
 					changes.Add(item);
 					continue;
@@ -129,7 +129,10 @@ namespace DocumentFillerWindowApp.UserModels
 			Teachers = new ObservableCollection<TeacherRecord>(_teachersAPI.GetFullInfo().Result.Teachers);
 			Teachers.CollectionChanged += OnCollectionChanged;
 			OnPropertyChanged("Teachers");
+			_lastTeachers = Teachers.Select( a => new TeacherRecord
+			{
 
+			}).ToList();
 			foreach (var teacher in Teachers)
 			{
 				teacher.PropertyChanged += OnInternalPropertyChanged;
@@ -187,6 +190,7 @@ namespace DocumentFillerWindowApp.UserModels
 			{
 				_firstName = value;
 				OnPropertyChanged();
+				OnPropertyChanged(nameof(FullName));
 			}
 		}
 		private string _secondName;
@@ -197,6 +201,7 @@ namespace DocumentFillerWindowApp.UserModels
 			{
 				_secondName = value;
 				OnPropertyChanged();
+				OnPropertyChanged(nameof(FullName));
 			}
 		}
 		private string _patronymic;
@@ -207,8 +212,10 @@ namespace DocumentFillerWindowApp.UserModels
 			{
 				_patronymic = value;
 				OnPropertyChanged();
+				OnPropertyChanged(nameof(FullName));
 			}
 		}
+		public string FullName => $"{SecondName} {FirstName} {Patronymic}".Trim();
 		private AcademicTitleRecord? _academicTitle;
 		public AcademicTitleRecord? AcademicTitle 
 		{
@@ -219,6 +226,11 @@ namespace DocumentFillerWindowApp.UserModels
 				OnPropertyChanged();
 			}
 		}
+
+		//public override int GetHashCode()
+		//{
+		//	return HashCode.Combine(ID.GetHashCode(), _secondName.GetHashCode(), _firstName.GetHashCode(), _patronymic.GetHashCode(), _academicTitle?.ID.GetHashCode() ?? 0);
+		//}
 
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
@@ -234,7 +246,7 @@ namespace DocumentFillerWindowApp.UserModels
 		public int HoursAmount { get; set; }
 		public Guid TeacherID { get; set; }
 		public Guid DepartmentID { get; set; }
-		public bool IsAdditional { get; set; }
+		public bool IsExcessive { get; set; }
 	}
 
 	public record MinimalTeacherRecord

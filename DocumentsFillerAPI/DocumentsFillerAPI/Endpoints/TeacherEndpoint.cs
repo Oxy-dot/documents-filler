@@ -247,7 +247,7 @@ namespace DocumentsFillerAPI.Endpoints
 								DepartmentID = departmentID,
 								BetAmount = mainBet.MainBet!.Value,
 								HoursAmount = mainBet.MainBetHours.Value,
-								IsAdditional = false
+								IsExcessive = false
 							});
 						}
 					}
@@ -278,7 +278,7 @@ namespace DocumentsFillerAPI.Endpoints
 								DepartmentID = departmentID,
 								BetAmount = mainBet.MainBet!.Value,
 								HoursAmount = mainBet.MainBetHours.Value,
-								IsAdditional = false
+								IsExcessive = false
 							});
 						}
 					}
@@ -307,7 +307,7 @@ namespace DocumentsFillerAPI.Endpoints
 								DepartmentID = departmentID,
 								BetAmount = excessiveBet.ExcessiveBet!.Value,
 								HoursAmount = excessiveBet.ExcessiveBetHours!.Value,
-								IsAdditional = true
+								IsExcessive = true
 							});
 						}
 					}
@@ -338,7 +338,7 @@ namespace DocumentsFillerAPI.Endpoints
 								DepartmentID = departmentID,
 								BetAmount = excessiveBet.ExcessiveBet!.Value,
 								HoursAmount = excessiveBet.ExcessiveBetHours!.Value,
-								IsAdditional = true
+								IsExcessive = true
 							});
 						}
 					}

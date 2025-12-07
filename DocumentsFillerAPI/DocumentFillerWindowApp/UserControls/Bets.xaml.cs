@@ -1,21 +1,6 @@
-using DocumentFillerWindowApp.ModalWindows;
 using DocumentFillerWindowApp.UserModels;
-using MaterialDesignThemes.Wpf;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace DocumentFillerWindowApp.UserControls
 {
@@ -25,6 +10,9 @@ namespace DocumentFillerWindowApp.UserControls
 	public partial class Bets : UserControl
 	{
 		private BetsControlViewModel _viewModel;
+		private Guid? _oldTeacherID;
+		private Guid? _oldDepartmentID;
+		private BetDisplayRecord? _editingBet;
 
 		public Bets()
 		{
@@ -48,6 +36,64 @@ namespace DocumentFillerWindowApp.UserControls
 		private void Button_Click_1(object sender, RoutedEventArgs e)
 		{			
 			_viewModel.FindChangesAndUpdate();
+		}
+
+		private void MainGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
+		{
+			if (e.Row.DataContext is BetDisplayRecord bet)
+			{
+				_oldTeacherID = bet.TeacherID;
+				_oldDepartmentID = bet.DepartmentID;
+				_editingBet = bet;
+			}
+		}
+
+		private void MainGrid_PreparingCellForEdit(object sender, DataGridPreparingCellForEditEventArgs e)
+		{
+			if (e.Column.Header?.ToString() == "Преподаватель" && e.EditingElement is ComboBox comboBox && _editingBet != null)
+			{
+				if (comboBox.ItemsSource == null)
+				{
+					comboBox.ItemsSource = _viewModel.Teachers;
+				}
+				comboBox.SelectedValue = _editingBet.TeacherID;
+			}
+			else if (e.Column.Header?.ToString() == "Кафедра" && e.EditingElement is ComboBox comboBoxDept && _editingBet != null)
+			{
+				if (comboBoxDept.ItemsSource == null)
+				{
+					comboBoxDept.ItemsSource = _viewModel.Departments;
+				}
+				comboBoxDept.SelectedValue = _editingBet.DepartmentID;
+			}
+		}
+
+		private void MainGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+		{
+			if (e.Row.DataContext is BetDisplayRecord bet)
+			{
+				if (e.Column.Header?.ToString() == "Преподаватель" && e.EditingElement is ComboBox comboBox)
+				{
+					if (bet.TeacherID == Guid.Empty && _oldTeacherID.HasValue && _oldTeacherID.Value != Guid.Empty)
+					{
+						e.Cancel = true;
+						bet.TeacherID = _oldTeacherID.Value;
+						comboBox.SelectedValue = _oldTeacherID.Value;
+					}
+				}
+				else if (e.Column.Header?.ToString() == "Кафедра" && e.EditingElement is ComboBox comboBoxDept)
+				{
+					if (bet.DepartmentID == Guid.Empty && _oldDepartmentID.HasValue && _oldDepartmentID.Value != Guid.Empty)
+					{
+						e.Cancel = true;
+						bet.DepartmentID = _oldDepartmentID.Value;
+						comboBoxDept.SelectedValue = _oldDepartmentID.Value;
+					}
+				}
+				_oldTeacherID = null;
+				_oldDepartmentID = null;
+				_editingBet = null;
+			}
 		}
 	}
 }

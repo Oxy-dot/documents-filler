@@ -29,7 +29,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					HoursAmount = (int)a["HoursAmount"]!,
 					TeacherID = a["TeacherID"] != null ? (Guid)a["TeacherID"]! : Guid.Empty,
 					DepartmentID = a["DepartmentID"] != null ? (Guid)a["DepartmentID"]! : Guid.Empty,
-					IsAdditional = a["IsAdditional"] != null ? (bool)a["IsAdditional"]! : false
+					IsExcessive = a["IsExcessive"] != null ? (bool)a["IsExcessive"]! : false
 				}).ToList();
 
 				return ("", bets);
@@ -50,7 +50,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					["hoursAmount"] = a.HoursAmount,
 					["teacherID"] = a.TeacherID,
 					["departmentID"] = a.DepartmentID,
-					["isAdditional"] = a.IsAdditional
+					["isExcessive"] = a.IsExcessive
 				}).ToArray();
 
 				var requestBody = new JsonObject()
@@ -84,7 +84,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					["hoursAmount"] = a.HoursAmount,
 					["teacherID"] = a.TeacherID,
 					["departmentID"] = a.DepartmentID,
-					["isAdditional"] = a.IsAdditional
+					["isExcessive"] = a.IsExcessive
 				}).ToArray();
 
 				var requestBody = new JsonObject()

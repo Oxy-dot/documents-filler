@@ -6,7 +6,7 @@ namespace DocumentsFillerAPI.Providers
 {
 	public class BetPostgreProvider
 	{
-		private string connectionString = "";
+		private string connectionString = "Host=localhost;Port=5432;Database=document_filler;Username=postgres;Password=root";
 
 		public async Task<ResultMessage> Delete(IEnumerable<Guid> bets)
 		{
@@ -42,8 +42,8 @@ namespace DocumentsFillerAPI.Providers
 
 				string sql =
 					$@"
-					INSERT INTO public.bet(id, bet, hours_amount, teacher_id, department_id, is_additional)
-					VALUES (@id, @bet, @hours_amount, @teacher_id, @department_id, @is_additional);
+					INSERT INTO public.bet(id, bet, hours_amount, teacher_id, department_id, is_excessive)
+					VALUES (@id, @bet, @hours_amount, @teacher_id, @department_id, @is_excessive);
 					";
 
 				await using (var cmd = dataSource.CreateCommand(sql))
@@ -55,7 +55,7 @@ namespace DocumentsFillerAPI.Providers
 						cmd.Parameters.AddWithValue("@hours_amount", bet.HoursAmount);
 						cmd.Parameters.AddWithValue("@teacher_id", bet.TeacherID);
 						cmd.Parameters.AddWithValue("@department_id", bet.DepartmentID);
-						cmd.Parameters.AddWithValue("@is_additional", bet.IsAdditional);
+						cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
 
 						int cnt = cmd.ExecuteNonQuery();
 						if (cnt != 1)
@@ -86,7 +86,7 @@ namespace DocumentsFillerAPI.Providers
 				string sql =
 					$@"
 					UPDATE public.bet
-					SET bet=@bet, hours_amount=@hours_amount, teacher_id=@teacher_id, department_id=@department_id, is_additional=@is_additional
+					SET bet=@bet, hours_amount=@hours_amount, teacher_id=@teacher_id, department_id=@department_id, is_excessive=@is_excessive
 					WHERE id = @id
 					";
 
@@ -103,7 +103,7 @@ namespace DocumentsFillerAPI.Providers
 							cmd.Parameters.AddWithValue("@hours_amount", bet.HoursAmount);
 							cmd.Parameters.AddWithValue("@teacher_id", bet.TeacherID);
 							cmd.Parameters.AddWithValue("@department_id", bet.DepartmentID);
-							cmd.Parameters.AddWithValue("@is_additional", bet.IsAdditional);
+							cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
@@ -152,12 +152,12 @@ namespace DocumentsFillerAPI.Providers
 						   hours_amount,
 						   teacher_id,
 						   department_id,
-						   is_additional,
+						   is_excessive,
 						   ROW_NUMBER() OVER (ORDER BY id ASC, is_deleted DESC) AS row_id
 					FROM public.bet
 					WHERE is_deleted = False
 					OFFSET {startIndex}
-					LIMIT {count}";
+					LIMIT {(count == 0 ? "NULL" : count.ToString())}";
 
 				List<BetStruct> results = new List<BetStruct>();
 
@@ -173,7 +173,7 @@ namespace DocumentsFillerAPI.Providers
 							HoursAmount = reader.GetInt32(2),
 							TeacherID = reader.IsDBNull(3) ? Guid.Empty : reader.GetGuid(3),
 							DepartmentID = reader.IsDBNull(4) ? Guid.Empty : reader.GetGuid(4),
-							IsAdditional = reader.IsDBNull(5) ? false : reader.GetBoolean(5),
+							IsExcessive = reader.IsDBNull(5) ? false : reader.GetBoolean(5),
 						});
 					}
 				}

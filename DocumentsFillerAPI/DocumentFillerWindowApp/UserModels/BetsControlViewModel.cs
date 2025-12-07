@@ -15,6 +15,8 @@ namespace DocumentFillerWindowApp.UserModels
 		private DepartmentsAPI _departmentsAPI;
 
 		public ObservableCollection<BetDisplayRecord> Bets { get; set; } = new ObservableCollection<BetDisplayRecord>();
+		public List<TeacherRecord> Teachers { get; set; } = new List<TeacherRecord>();
+		public List<DepartmentRecord> Departments { get; set; } = new List<DepartmentRecord>();
 		private Visibility _saveChangesShowButton = Visibility.Hidden;
 		public Visibility SaveChangesShowButton
 		{
@@ -26,7 +28,34 @@ namespace DocumentFillerWindowApp.UserModels
 			_betsAPI = new BetsAPI();
 			_teachersAPI = new TeachersAPI();
 			_departmentsAPI = new DepartmentsAPI();
+			UpdateTeachersAndDepartments();
 			UpdateBetsFromAPI();
+		}
+
+		private async void UpdateTeachersAndDepartments()
+		{
+			var teachersResult = await _teachersAPI.GetFullInfo();
+			var departmentsResult = await _departmentsAPI.Get();
+
+			if (!string.IsNullOrEmpty(teachersResult.Message))
+			{
+				MessageBox.Show(teachersResult.Message, "Ошибка загрузки преподавателей", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+			else
+			{
+				Teachers = teachersResult.Teachers;
+				OnPropertyChanged("Teachers");
+			}
+
+			if (!string.IsNullOrEmpty(departmentsResult.Message))
+			{
+				MessageBox.Show(departmentsResult.Message, "Ошибка загрузки кафедр", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+			else
+			{
+				Departments = departmentsResult.Departments;
+				OnPropertyChanged("Departments");
+			}
 		}
 
 		public void FindChangesAndUpdate()
@@ -49,7 +78,7 @@ namespace DocumentFillerWindowApp.UserModels
 					item.HoursAmount != originalItem.HoursAmount ||
 					item.TeacherID != originalItem.TeacherID ||
 					item.DepartmentID != originalItem.DepartmentID ||
-					item.IsAdditional != originalItem.IsAdditional)
+					item.IsExcessive != originalItem.IsExcessive)
 				{
 					changes.Add(item);
 					continue;
@@ -76,7 +105,7 @@ namespace DocumentFillerWindowApp.UserModels
 				HoursAmount = a.HoursAmount,
 				TeacherID = a.TeacherID,
 				DepartmentID = a.DepartmentID,
-				IsAdditional = a.IsAdditional
+				IsExcessive = a.IsExcessive
 			}).ToList();
 
 			var results = _betsAPI.Insert(betsToInsert).Result;
@@ -95,7 +124,7 @@ namespace DocumentFillerWindowApp.UserModels
 				HoursAmount = a.HoursAmount,
 				TeacherID = a.TeacherID,
 				DepartmentID = a.DepartmentID,
-				IsAdditional = a.IsAdditional
+				IsExcessive = a.IsExcessive
 			}).ToList();
 
 			var results = _betsAPI.Update(betsToUpdate).Result;
@@ -137,6 +166,12 @@ namespace DocumentFillerWindowApp.UserModels
 			var teachers = teachersResult.Teachers;
 			var departments = departmentsResult.Departments;
 
+			// Обновляем списки для ComboBox
+			Teachers = teachers;
+			Departments = departments;
+			OnPropertyChanged("Teachers");
+			OnPropertyChanged("Departments");
+
 			var betsWithDisplayInfo = betsResult.Bets.Select(bet =>
 			{
 				var teacher = teachers.FirstOrDefault(t => t.ID == bet.TeacherID);
@@ -149,7 +184,7 @@ namespace DocumentFillerWindowApp.UserModels
 					HoursAmount = bet.HoursAmount,
 					TeacherID = bet.TeacherID,
 					DepartmentID = bet.DepartmentID,
-					IsAdditional = bet.IsAdditional,
+					IsExcessive = bet.IsExcessive,
 					TeacherFullName = teacher != null ? $"{teacher.SecondName} {teacher.FirstName} {teacher.Patronymic}" : "",
 					DepartmentName = department != null ? department.Name : ""
 				};
@@ -164,7 +199,7 @@ namespace DocumentFillerWindowApp.UserModels
 				HoursAmount = a.HoursAmount,
 				TeacherID = a.TeacherID,
 				DepartmentID = a.DepartmentID,
-				IsAdditional = a.IsAdditional,
+				IsExcessive = a.IsExcessive,
 				TeacherFullName = a.TeacherFullName,
 				DepartmentName = a.DepartmentName
 			}).ToList();
@@ -195,7 +230,7 @@ namespace DocumentFillerWindowApp.UserModels
 		public int HoursAmount { get; set; }
 		public Guid TeacherID { get; set; }
 		public Guid DepartmentID { get; set; }
-		public bool IsAdditional { get; set; }
+		public bool IsExcessive { get; set; }
 		public string TeacherFullName { get; set; } = "";
 		public string DepartmentName { get; set; } = "";
 	}

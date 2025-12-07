@@ -38,7 +38,7 @@ namespace DocumentsFillerAPI.Endpoints
 					HoursAmount = (int)a["hoursAmount"]!,
 					TeacherID = (Guid)a["teacherID"]!,
 					DepartmentID = (Guid)a["departmentID"]!,
-					IsAdditional = (bool)a["isAdditional"]!,
+					IsExcessive = (bool)a["isExcessive"]!,
 				}).ToList() ?? new List<BetStruct>();
 
 				if (betsToInsert.Count == 0)
@@ -77,7 +77,7 @@ namespace DocumentsFillerAPI.Endpoints
 					HoursAmount = (int)a["hoursAmount"]!,
 					TeacherID = (Guid)a["teacherID"]!,
 					DepartmentID = (Guid)a["departmentID"]!,
-					IsAdditional = (bool)a["isAdditional"]!,
+					IsExcessive = (bool)a["isExcessive"]!,
 				}).ToList() ?? new List<BetStruct>();
 
 				if (betsToUpdate.Count == 0)
@@ -137,6 +137,7 @@ namespace DocumentsFillerAPI.Endpoints
 		}
 	}
 }
+
 
 
 
