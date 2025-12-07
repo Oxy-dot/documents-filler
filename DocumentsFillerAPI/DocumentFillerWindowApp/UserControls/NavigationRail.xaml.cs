@@ -78,13 +78,13 @@ namespace DocumentFillerWindowApp.UserControls
 				},
 				new NavigationRailItem
 				{
-					Title = "Создать стаффинг табле",
+					Title = "Создать штатное расписание",
 					IconKind = PackIconKind.ClipboardText,
 					Id = "CreateStaffingTable"
 				},
 				new NavigationRailItem
 				{
-					Title = "Создать мемо табле",
+					Title = "Создать служебную записку",
 					IconKind = PackIconKind.ClipboardText,
 					Id = "CreateServiceMemoTable"
 				},

@@ -31,6 +31,7 @@ namespace DocumentsFillerAPI.Providers
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", teacherID);
 
 							int cnt = cmd.ExecuteNonQuery();
@@ -60,50 +61,51 @@ namespace DocumentsFillerAPI.Providers
 			}
 		}
 
-		public async Task<(ResultMessage Message, List<TeacherStruct> Inserted, List<string> NotInserted)> Insert(IEnumerable<TeacherStruct> teachers)
+		public async Task<ResultMessage> Insert(IEnumerable<TeacherFullInfoStruct> teachers)
 		{
 			try
 			{
 				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+				List<string> errors = new List<string>();
 
 				string sql =
 					$@"
-					INSERT INTO public.teacher(id, first_name, second_name, patronymic)
-					VALUES (@id, @firstName, @secondName, @patronymic) RETURNING *;
+					INSERT INTO public.teacher(id, first_name, second_name, patronymic, academic_title)
+					VALUES (@id, @firstName, @secondName, @patronymic, @academicTitle);
 					";
 
-				List<TeacherStruct> insertedTeachers = new List<TeacherStruct>();
-				List<string> notInsertedTeachers = new List<string>();
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					foreach (TeacherStruct teacher in teachers)
+					foreach (TeacherFullInfoStruct teacher in teachers)
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
 							cmd.Parameters.AddWithValue("@firstName", teacher.FirstName);
 							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
 							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
+							cmd.Parameters.AddWithValue("@academicTitle", teacher.AcademicTitle.ID);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
-								throw new Exception($"Unkown error");
-
-							insertedTeachers.Add(teacher);
+								throw new Exception($"Строка с именем: {teacher.FirstName}, фамилией: {teacher.SecondName}, отчеством: {teacher.Patronymic}");
 						}
 						catch (Exception ex)
 						{
-							notInsertedTeachers.Add($"Row with firstName={teacher.FirstName} and secondName={teacher.SecondName} and patronymic={teacher.Patronymic} wasnt inserted, erorr: {ex.Message}");
+							errors.Add(ex.Message);
 						}
 					}
 				}
 
-				return new (new ResultMessage() { Message = "Success", IsSuccess = true }, insertedTeachers, notInsertedTeachers);
+				string message = errors.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", errors)}";
+
+				return new ResultMessage { IsSuccess = true, Message = message };
 			}
 			catch (Exception ex)
 			{
-				return new (new ResultMessage() { Message = ex.Message, IsSuccess = false }, new List<TeacherStruct>(), new List<string>());
+				return new ResultMessage { IsSuccess = false, Message = ex.Message };
 			}
 		}
 
@@ -112,7 +114,7 @@ namespace DocumentsFillerAPI.Providers
 			throw new NotImplementedException();
 		}
 
-		public async Task<(ResultMessage Message, List<UpdateTeacherRecord> TeachersResult)> Update(IEnumerable<TeacherStruct> teachers)
+		public async Task<(ResultMessage Message, List<UpdateTeacherRecord> TeachersResult)> Update(IEnumerable<TeacherFullInfoStruct> teachers)
 		{
 			try
 			{
@@ -121,7 +123,7 @@ namespace DocumentsFillerAPI.Providers
 				string sql =
 					$@"
 					UPDATE public.teacher
-					SET first_name=@firstName, second_name=@secondName, patronymic=@patronymic
+					SET first_name=@firstName, second_name=@secondName, patronymic=@patronymic, academic_title=@academicTitle
 					WHERE id = @id
 					";
 
@@ -129,14 +131,16 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					foreach (TeacherStruct teacher in teachers)
+					foreach (TeacherFullInfoStruct teacher in teachers)
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", teacher.ID);
 							cmd.Parameters.AddWithValue("@firstName", teacher.FirstName);
 							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
 							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
+							cmd.Parameters.AddWithValue("@academicTitle", teacher.AcademicTitle.ID);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
@@ -228,50 +232,6 @@ namespace DocumentsFillerAPI.Providers
 			}
 		}
 
-		public async Task<(ResultMessage Message, List<TeacherStruct> Teachers)> List(uint count, uint startIndex)
-		{
-			try
-			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-				//SELECT *, ROW_NUMBER() OVER (ORDER BY bet_id ASC, is_deleted DESC) AS row_id FROM betv2
-
-				string sql =
-					$@"
-					SELECT id,
-						   first_name, 
-						   second_name,
-						   patronymic, 
-						   ROW_NUMBER() OVER (ORDER BY id ASC, is_deleted DESC) AS row_id
-					FROM public.teacher
-					WHERE is_deleted = False
-					OFFSET {startIndex}
-					LIMIT {count}";
-
-				List<TeacherStruct> results = new List<TeacherStruct>();
-
-				await using (var cmd = dataSource.CreateCommand(sql))
-				{
-					var reader = cmd.ExecuteReader();
-					while (reader.Read())
-					{
-						results.Add(new TeacherStruct
-						{
-							ID = reader.GetGuid(0),
-							FirstName = reader.GetString(1),
-							SecondName = reader.GetString(2),
-							Patronymic = reader.GetString(3),
-						});
-					}
-				}
-
-				return (new ResultMessage() { IsSuccess = true, Message = "Success" }, results);
-			}
-			catch (Exception ex)
-			{
-				return (new ResultMessage() { IsSuccess = false, Message = ex.Message }, new List<TeacherStruct>());
-			}
-		}
-
 		public async Task<(ResultMessage Result, Guid TeacherID)> FindTeacherByShortName(string shortName)
 		{
 			try
@@ -312,7 +272,7 @@ namespace DocumentsFillerAPI.Providers
 
 		public record UpdateTeacherRecord
 		{
-			public TeacherStruct Teacher { get; init; }
+			public TeacherFullInfoStruct Teacher { get; init; }
 			public string Message { get; init; }
 			public bool IsSuccess { get; init; }
 		}

@@ -21,7 +21,7 @@ namespace DocumentFillerWindowApp.UserControls
 			InitializeComponent();
 		}
 
-		private void Button_Click(object sender, RoutedEventArgs e)
+		private async void Button_Click(object sender, RoutedEventArgs e)
 		{
 			if (MainGrid.SelectedItems.Count == 0)
 			{
@@ -29,11 +29,11 @@ namespace DocumentFillerWindowApp.UserControls
 				return;
 			}
 
-			_viewModel.Delete((MainGrid.SelectedItems as List<TeacherRecord>)!);
+			await _viewModel.Delete(new List<TeacherRecord>(MainGrid.SelectedItems.Cast<TeacherRecord>()));
 		}
-		private void Button_Click_1(object sender, RoutedEventArgs e)
+		private async void Button_Click_1(object sender, RoutedEventArgs e)
 		{
-			_viewModel.FindChangesAndUpdate();
+			await _viewModel.FindChangesAndUpdate();
 		}
 
 		private void MainGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)

@@ -1,9 +1,6 @@
 ﻿using DocumentsFillerAPI.Controllers;
 using DocumentsFillerAPI.Structures;
 using Npgsql;
-using NPOI.SS.Formula.Functions;
-using NPOI.XSSF.UserModel;
-using System.Threading.Tasks;
 
 namespace DocumentsFillerAPI.Providers
 {
@@ -11,20 +8,18 @@ namespace DocumentsFillerAPI.Providers
 	{
 		private string connectionString = "Host=localhost;Port=5432;Database=document_filler;Username=postgres;Password=root";
 
-		public async Task<(List<AcademicTitleStruct> Inserted, List<string> NotInserted, ResultMessage Result)> Insert(IEnumerable<AcademicTitleStruct> titles)
+		public async Task<ResultMessage> Insert(IEnumerable<AcademicTitleStruct> titles)
 		{
 			try
 			{
 				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+				List<string> errors = new List<string>();
 
 				string sql =
 					$@"
 					INSERT INTO public.academic_title(id, name)
-					VALUES (@id, @name, @short_name) RETURNING *;
+					VALUES (@id, @name);
 					";
-
-				List<AcademicTitleStruct> insertedValues = new List<AcademicTitleStruct>();
-				List<string> notInsertedTitles = new List<string>();
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
@@ -32,31 +27,28 @@ namespace DocumentsFillerAPI.Providers
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
 							cmd.Parameters.AddWithValue("@name", title.Name);
 
-							var reader = cmd.ExecuteReader();
-							insertedValues.Add(new AcademicTitleStruct
-							{
-								ID = reader.GetGuid(0),
-								Name = reader.GetString(1)
-							});
+							int cnt = cmd.ExecuteNonQuery();
+							if (cnt != 1)
+								throw new Exception($"Row with name={title.Name} and short name={title.ShortName} wasnt inserted");
 						}
 						catch (Exception ex)
 						{
-							notInsertedTitles.Add($"Row with name={title.Name} wasnt inserted, erorr: {ex.Message}");
+							errors.Add(ex.Message);
 						}
-						//int cnt = cmd.ExecuteNonQuery();
-						//if (cnt != 1)
-						//	throw new Exception($"Row with name={title.Name} and short name={title.ShortName} wasnt inserted");
 					}
 				}
 
-				return new (insertedValues, notInsertedTitles, new ResultMessage() { Message = "Success", IsSuccess = true });
+				string message = errors.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", errors)}";
+
+				return new ResultMessage() { IsSuccess = true, Message = message };
 			}
 			catch (Exception ex)
 			{
-				return new (new(), new(), new ResultMessage() { Message = ex.Message, IsSuccess = false });
+				return new ResultMessage() { Message = ex.Message };
 			}
 		}
 
@@ -78,6 +70,7 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
+					cmd.Parameters.Clear();
 					cmd.Parameters.AddWithValue("@seachText", searchText);
 
 					var reader = cmd.ExecuteReader();
@@ -120,6 +113,7 @@ namespace DocumentsFillerAPI.Providers
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", title.ID);
 							cmd.Parameters.AddWithValue("@name", title.Name);
 
@@ -217,6 +211,7 @@ namespace DocumentsFillerAPI.Providers
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", titleID);
 
 							int cnt = cmd.ExecuteNonQuery();

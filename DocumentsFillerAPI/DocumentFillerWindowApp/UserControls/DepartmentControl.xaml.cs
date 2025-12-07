@@ -39,15 +39,15 @@ namespace DocumentFillerWindowApp.UserControls
 				return;
 			}
 
-			_viewModel.Delete((MainGrid.SelectedItems as List<DepartmentRecord>)!);
+			_viewModel.Delete(new List<DepartmentRecord>(MainGrid.SelectedItems.Cast<DepartmentRecord>()));
 			//var window = new AddNewAcademicTitle();
 			//window.Owner = Window.GetWindow(this);
 			//window.ShowDialog();
 		}
 
-		private void Button_Click_1(object sender, RoutedEventArgs e)
+		private async void Button_Click_1(object sender, RoutedEventArgs e)
 		{
-			_viewModel.FindChangesAndUpdate();
+			await _viewModel.FindChangesAndUpdate();
 		}
 	}
 }

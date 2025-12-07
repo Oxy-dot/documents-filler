@@ -32,7 +32,7 @@ namespace DocumentFillerWindowApp.APIProviders
 			}
 		}
 
-		public async Task<(List<string> Messages, List<AcademicTitleRecord> Inserted, string Message)> InsertTitles(List<string> names)
+		public async Task<string> InsertTitles(List<string> names)
 		{
 			try
 			{
@@ -50,18 +50,12 @@ namespace DocumentFillerWindowApp.APIProviders
 				if (response.Response == null)
 					throw new Exception("Response is null");
 
-				var inserted = response.Response["inserted"]!.AsArray().Select(a => new AcademicTitleRecord
-				{
-					ID = (Guid)a["ID"]!,
-					Name = (string)a["Name"]!
-				}).ToList();
-
-				var messages = response.Response["notInsertedMessages"]!.AsArray().Select(a => (string)a!).ToList();
-				return new (messages, inserted, "");
+				var message = response.Response["messages"] != null ? (string)response.Response["messages"]! : "";
+				return message;
 			}
 			catch (Exception ex)
 			{
-				return new (new(), new(), ex.Message);
+				return ex.Message;
 			}
 		}
 

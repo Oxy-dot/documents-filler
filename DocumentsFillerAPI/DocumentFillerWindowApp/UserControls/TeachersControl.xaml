@@ -34,10 +34,10 @@
         </Grid>
         <DataGrid
             x:Name="MainGrid"
-            CanUserAddRows="False"
+            CanUserAddRows="True"
             ItemsSource="{Binding Teachers}"
             SelectionMode="Extended"
-            SelectionUnit="Cell"
+            SelectionUnit="FullRow"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
             VirtualizingPanel.IsVirtualizing="True"
             AutoGenerateColumns="False"

@@ -30,6 +30,7 @@ namespace DocumentsFillerAPI.Providers
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", departmentID);
 
 							int cnt = cmd.ExecuteNonQuery();
@@ -65,20 +66,18 @@ namespace DocumentsFillerAPI.Providers
 			}
 		}
 
-		public async Task<(List<DepartmentStruct> Inserted, List<string> NotInserted, ResultMessage Result)> Insert(IEnumerable<DepartmentStruct> departments)
+		public async Task<ResultMessage> Insert(IEnumerable<DepartmentStruct> departments)
 		{
 			try
 			{
 				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+				List<string> errors = new List<string>();
 
 				string sql =
 					$@"
 					INSERT INTO public.department(id, name, full_name)
-					VALUES (@id, @name, @fullName) RETURNING *;
+					VALUES (@id, @name, @fullName);
 					";
-
-				List<DepartmentStruct> insertedValues = new List<DepartmentStruct>();
-				List<string> notInsertedTitles = new List<string>();
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
@@ -86,33 +85,29 @@ namespace DocumentsFillerAPI.Providers
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
 							cmd.Parameters.AddWithValue("@name", department.Name);
 							cmd.Parameters.AddWithValue("@fullName", department.FullName ?? (object)DBNull.Value);
 
-							var reader = cmd.ExecuteReader();
-							if (reader.Read())
-							{
-								insertedValues.Add(new DepartmentStruct
-								{
-									ID = reader.GetGuid(0),
-									Name = reader.GetString(1),
-									FullName = reader.IsDBNull(2) ? "" : reader.GetString(2)
-								});
-							}
+							int cnt = cmd.ExecuteNonQuery();
+							if (cnt != 1)
+								throw new Exception($"Row with name={department.Name} wasnt inserted");
 						}
 						catch (Exception ex)
 						{
-							notInsertedTitles.Add($"Row with name={department.Name} wasnt inserted, erorr: {ex.Message}");
+							errors.Add(ex.Message);
 						}
 					}
 				}
 
-				return new(insertedValues, notInsertedTitles, new ResultMessage() { Message = "Success", IsSuccess = true });
+				string message = errors.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", errors)}";
+
+				return new ResultMessage() { IsSuccess = true, Message = message };
 			}
 			catch (Exception ex)
 			{
-				return new(new(), new(), new ResultMessage() { Message = ex.Message, IsSuccess = false });
+				return new ResultMessage() { Message = ex.Message };
 			}
 		}
 
@@ -135,6 +130,7 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
+					cmd.Parameters.Clear();
 					cmd.Parameters.AddWithValue("@seachText", searchText);
 
 					var reader = cmd.ExecuteReader();
@@ -178,6 +174,7 @@ namespace DocumentsFillerAPI.Providers
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", department.ID);
 							cmd.Parameters.AddWithValue("@name", department.Name);
 							cmd.Parameters.AddWithValue("@fullName", department.FullName ?? (object)DBNull.Value);

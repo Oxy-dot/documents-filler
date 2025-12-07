@@ -76,6 +76,7 @@ namespace DocumentsFillerAPI.Providers
 						await using (var cmd = dataSource.CreateCommand(sql))
 						{
 							var fileId = Guid.NewGuid();
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", fileId);
 							cmd.Parameters.AddWithValue("@date", file.CreationDate);
 							cmd.Parameters.AddWithValue("@typeId", file.FileType);
@@ -129,6 +130,7 @@ namespace DocumentsFillerAPI.Providers
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", fileID);
 
 							var reader = cmd.ExecuteReader();

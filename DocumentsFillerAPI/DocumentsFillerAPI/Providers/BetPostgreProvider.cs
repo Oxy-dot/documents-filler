@@ -39,6 +39,7 @@ namespace DocumentsFillerAPI.Providers
 			try
 			{
 				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+				List<string> errors = new List<string>();
 
 				string sql =
 					$@"
@@ -50,21 +51,31 @@ namespace DocumentsFillerAPI.Providers
 				{
 					foreach (BetStruct bet in bets)
 					{
-						cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
-						cmd.Parameters.AddWithValue("@bet", bet.BetAmount);
-						cmd.Parameters.AddWithValue("@hours_amount", bet.HoursAmount);
-						cmd.Parameters.AddWithValue("@teacher_id", bet.TeacherID);
-						cmd.Parameters.AddWithValue("@department_id", bet.DepartmentID);
-						cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
+						try
+						{
+							cmd.Parameters.Clear();
+							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
+							cmd.Parameters.AddWithValue("@bet", bet.BetAmount);
+							cmd.Parameters.AddWithValue("@hours_amount", bet.HoursAmount);
+							cmd.Parameters.AddWithValue("@teacher_id", bet.TeacherID);
+							cmd.Parameters.AddWithValue("@department_id", bet.DepartmentID);
+							cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
 
-						int cnt = cmd.ExecuteNonQuery();
-						if (cnt != 1)
-							//and bet = { bet.IsAdditional } and bet = { bet.IsExcessive }
-							throw new Exception($"Row with bet={bet.BetAmount} and bet={bet.HoursAmount} for te {bet.TeacherID} wasnt inserted");
+							int cnt = cmd.ExecuteNonQuery();
+							if (cnt != 1)
+								//and bet = { bet.IsAdditional } and bet = { bet.IsExcessive }
+								throw new Exception($"Row with bet={bet.BetAmount} and bet={bet.HoursAmount} for te {bet.TeacherID} wasnt inserted");
+						}
+						catch (Exception ex)
+						{
+							errors.Add(ex.Message);
+						}
 					}
 				}
 
-				return new ResultMessage() { Message = "Success", IsSuccess = true };
+				string message = errors.Count == 0 ? "Success" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", errors)}";
+
+				return new ResultMessage() { Message = message, IsSuccess = true };
 			}
 			catch (Exception ex)
 			{
@@ -98,6 +109,7 @@ namespace DocumentsFillerAPI.Providers
 					{
 						try
 						{
+							cmd.Parameters.Clear();
 							cmd.Parameters.AddWithValue("@id", bet.ID);
 							cmd.Parameters.AddWithValue("@bet", bet.BetAmount);
 							cmd.Parameters.AddWithValue("@hours_amount", bet.HoursAmount);

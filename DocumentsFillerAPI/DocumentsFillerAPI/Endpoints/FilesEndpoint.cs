@@ -78,7 +78,7 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
+				var jBody = await Request.GetBodyJson();
 				var filesToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a!)?.ToList() ?? new List<Guid>();
 
 				if (filesToDelete.Count == 0)
@@ -113,7 +113,7 @@ namespace DocumentsFillerAPI.Endpoints
 			{
 				Guid typeID = new Guid("456dff6f-a4a1-48ef-b5c3-993083bb237d\r\n");
 
-				var jBody = Request.GetBodyJson()["staffingTableInfo"]!;
+				var jBody = (await Request.GetBodyJson())["staffingTableInfo"]!;
 				string fileName = (string)jBody["fileName"]!;
 				var data = new ExcelFilesGenerator.StaffingTemplateInputData()
 				{
@@ -168,7 +168,7 @@ namespace DocumentsFillerAPI.Endpoints
 
 			try
 			{
-				var jBody = Request.GetBodyJson()["serviceMemoInfo"]!;
+				var jBody = (await Request.GetBodyJson())["serviceMemoInfo"]!;
 				string fileName = (string)jBody["fileName"]!;
 
 				var data = new ExcelFilesGenerator.ServiceMemoInputData()

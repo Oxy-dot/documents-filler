@@ -31,7 +31,7 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
+				var jBody = await Request.GetBodyJson();
 				var betsToInsert = jBody?["insert"]?.AsArray()?.Select(a => new BetStruct
 				{
 					BetAmount = (double)a["betAmount"]!,
@@ -69,7 +69,7 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
+				var jBody = await Request.GetBodyJson();
 				var betsToUpdate = jBody?["update"]?.AsArray()?.Select(a => new BetStruct
 				{
 					ID = (Guid)a["id"]!,
@@ -110,7 +110,7 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
+				var jBody = await Request.GetBodyJson();
 				var betsToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a!)?.ToList() ?? new List<Guid>();
 
 				if (betsToDelete.Count == 0)

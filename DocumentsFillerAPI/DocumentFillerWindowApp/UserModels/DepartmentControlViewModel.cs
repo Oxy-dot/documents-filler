@@ -31,7 +31,7 @@ namespace DocumentFillerWindowApp.UserModels
 			UpdateDepartmentsFromAPI();
 		}
 
-		public void FindChangesAndUpdate()
+		public async Task FindChangesAndUpdate()
 		{
 			List<DepartmentRecord> changes = new List<DepartmentRecord>();
 
@@ -43,9 +43,13 @@ namespace DocumentFillerWindowApp.UserModels
 					continue;
 				}
 
-				var originaItem = _lastDepartments.First(a => a.ID == item.ID);
-				if (item.Name != originaItem.Name || 
-					item.FullName != originaItem.FullName)
+				var originalItem = _lastDepartments.FirstOrDefault(a => a.ID == item.ID);
+				if (originalItem == null)
+					continue;
+
+				// Сравниваем все поля
+				if (item.Name != originalItem.Name || 
+					item.FullName != originalItem.FullName)
 				{
 					changes.Add(item);
 					continue;
@@ -56,28 +60,27 @@ namespace DocumentFillerWindowApp.UserModels
 			var toUpdate = changes.Where(a => a.ID != Guid.Empty).ToList();
 
 			if (toInsert.Count > 0)
-				InsertDepartments(toInsert.Select(a => a.Name).ToList());
+				await InsertDepartments(toInsert);
 
 			if (toUpdate.Count > 0)
-				UpdateDepartments(toUpdate);
+				await UpdateDepartments(toUpdate);
 
 			UpdateDepartmentsFromAPI();
 			_saveChangesShowButton = Visibility.Hidden;
 		}
 
-		public void InsertDepartments(List<string> names)
+		public async Task InsertDepartments(List<DepartmentRecord> departments)
 		{
-			var results = _departmentAPI.InsertDepartments(names).Result;
-			if (results.Messages.Count > 0)
+			var result = await _departmentAPI.InsertDepartments(departments);
+			if (!string.IsNullOrEmpty(result))
 			{
-				string message = string.Join("\r\n", results.Messages);
-				MessageBox.Show(message, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
+				MessageBox.Show(result, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 		}
 
-		public void UpdateDepartments(List<DepartmentRecord> recordsToUpdate)
+		public async Task UpdateDepartments(List<DepartmentRecord> recordsToUpdate)
 		{
-			var results = _departmentAPI.Update(recordsToUpdate).Result;
+			var results = await _departmentAPI.Update(recordsToUpdate);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
 			if (!string.IsNullOrEmpty(results.Message))
@@ -90,9 +93,9 @@ namespace DocumentFillerWindowApp.UserModels
 			}
 		}
 
-		public void Delete(List<DepartmentRecord> recordsToDelete)
+		public async Task Delete(List<DepartmentRecord> recordsToDelete)
 		{
-			var results = _departmentAPI.Delete(recordsToDelete).Result;
+			var results = await _departmentAPI.Delete(recordsToDelete);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
 			if (!string.IsNullOrEmpty(results.Message))
@@ -122,6 +125,8 @@ namespace DocumentFillerWindowApp.UserModels
 			Departments = new ObservableCollection<DepartmentRecord>(_departmentAPI.Get().Result.Departments);
 			Departments.CollectionChanged += OnCollectionChanged;
 			OnPropertyChanged("Departments");
+			// Клонируем записи для сохранения исходных значений
+			_lastDepartments = Departments.Select(d => (DepartmentRecord)d.Clone()).ToList();
 
 			foreach (var department in Departments)
 			{
@@ -156,7 +161,7 @@ namespace DocumentFillerWindowApp.UserModels
 
 	}
 
-	public record DepartmentRecord : INotifyPropertyChanged
+	public class DepartmentRecord : INotifyPropertyChanged, ICloneable
 	{
 		private Guid _ID;
 		private string _name;
@@ -196,6 +201,16 @@ namespace DocumentFillerWindowApp.UserModels
 		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		public object Clone()
+		{
+			return new DepartmentRecord
+			{
+				ID = this.ID,
+				Name = this.Name,
+				FullName = this.FullName
+			};
 		}
 	}
 }

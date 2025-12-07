@@ -38,11 +38,11 @@ namespace DocumentFillerWindowApp.APIProviders
 			}
 		}
 
-		public async Task<(List<string> Messages, List<DepartmentRecord> Inserted, string Message)> InsertDepartments(List<string> names)
+		public async Task<string> InsertDepartments(List<DepartmentRecord> departments)
 		{
 			try
 			{
-				var jsonNames = names.Select(a => new JsonObject() { ["name"] = a }).ToArray();
+				var jsonNames = departments.Select(a => new JsonObject() { ["name"] = a.Name, ["fullName"] = a.FullName }).ToArray();
 
 				var requestBody = new JsonObject()
 				{
@@ -56,19 +56,12 @@ namespace DocumentFillerWindowApp.APIProviders
 				if (response.Response == null)
 					throw new Exception("Response is null");
 
-				var inserted = response.Response["inserted"]!.AsArray().Select(a => new DepartmentRecord
-				{
-					ID = (Guid)a["ID"]!,
-					Name = (string)a["Name"]!,
-					FullName = a["FullName"] != null ? (string)a["FullName"]! : ""
-				}).ToList();
-
-				var messages = response.Response["notInsertedMessages"]!.AsArray().Select(a => (string)a!).ToList();
-				return new(messages, inserted, "");
+				var message = response.Response["message"] != null ? (string)response.Response["message"]! : "";
+				return message;
 			}
 			catch (Exception ex)
 			{
-				return new(new(), new(), ex.Message);
+				return ex.Message;
 			}
 		}
 
@@ -153,7 +146,7 @@ namespace DocumentFillerWindowApp.APIProviders
 				var deleted = response.Response["deleteResults"]!.AsArray().Select(a => (
 					(string)a["Message"]!,
 					(bool)a["IsSuccess"]!,
-					(Guid)a["TitleID"]!)).ToList();
+					(Guid)a["DepartmentID"]!)).ToList();
 
 				return new("", deleted);
 			}

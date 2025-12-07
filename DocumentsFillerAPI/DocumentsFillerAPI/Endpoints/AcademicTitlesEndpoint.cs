@@ -32,7 +32,7 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
+				var jBody = await Request.GetBodyJson();
 				var titlesToInsert = jBody?["insert"]?.AsArray()?.Select(a => new AcademicTitleStruct
 				{ 
 					Name = (string)a["name"]!
@@ -45,12 +45,10 @@ namespace DocumentsFillerAPI.Endpoints
 
 				var jsonResult = new JsonObject()
 				{
-					["inserted"] = JsonNode.Parse(JsonSerializer.Serialize(result.Inserted))!.AsArray(),
-					["notInsertedMessages"] = JsonNode.Parse(JsonSerializer.Serialize(result.NotInserted))!.AsArray(),
-					["result"] = JsonNode.Parse(JsonSerializer.Serialize(result.Result))!.AsObject()
+					["messages"] = result.Message
 				};
 
-				if (result.Result.IsSuccess)
+				if (result.IsSuccess)
 					return Ok(jsonResult);
 				else
 					return BadRequest(jsonResult);
@@ -93,7 +91,7 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
+				var jBody = await Request.GetBodyJson();
 				var titlesToUpdate = jBody?["update"]?.AsArray()?.Select(a => new AcademicTitleStruct
 				{
 					ID = (Guid)a["id"]!,
@@ -129,7 +127,7 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
+				var jBody = await Request.GetBodyJson();
 				var titlesToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a["id"]!).ToList() ?? new List<Guid>();
 
 				if (titlesToDelete.Count == 0)

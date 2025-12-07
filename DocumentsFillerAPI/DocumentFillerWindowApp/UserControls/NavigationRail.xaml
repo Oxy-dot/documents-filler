@@ -51,7 +51,7 @@
                     Click="Button_Click">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="Add" />
-                    <TextBlock>Создать новый файл</TextBlock>
+                    <TextBlock>Прочитать ППС</TextBlock>
                 </StackPanel>
             </Button>
         </StackPanel>

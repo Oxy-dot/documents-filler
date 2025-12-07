@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace DocumentFillerWindowApp.UserModels
@@ -24,7 +25,7 @@ namespace DocumentFillerWindowApp.UserModels
 			UpdateTitlesFromAPI();
 		}
 
-		public void FindChangesAndUpdate()
+		public async Task FindChangesAndUpdate()
 		{
 			List<AcademicTitleRecord> changes = new List<AcademicTitleRecord>();
 
@@ -36,40 +37,43 @@ namespace DocumentFillerWindowApp.UserModels
 					continue;
 				}
 
-				var originaItem = _lastAcademicTitles.First(a => a.ID == item.ID);
-				if (item.Name != originaItem.Name)
+				var originalItem = _lastAcademicTitles.FirstOrDefault(a => a.ID == item.ID);
+				if (originalItem == null)
+					continue;
+
+				// Сравниваем все поля
+				if (item.Name != originalItem.Name)
 				{
 					changes.Add(item);
 					continue;
 				}	
 			}
 
-			var toInsert = changes.Where(a => a.ID == Guid.Empty).ToList();
+			var toInsert = changes.Where(a => a.ID == Guid.Empty && !string.IsNullOrEmpty(a.Name)).ToList();
 			var toUpdate = changes.Where(a => a.ID != Guid.Empty).ToList();
 
 			if (toInsert.Count > 0)
-				InsertTitles(toInsert.Select(a => a.Name).ToList());
+				await InsertTitles(toInsert.Select(a => a.Name).ToList());
 
 			if (toUpdate.Count > 0)
-				UpdateTitles(toUpdate);
+				await UpdateTitles(toUpdate);
 
 			UpdateTitlesFromAPI();
 			_saveChangesShowButton = Visibility.Hidden;
 		}
 
-		public void InsertTitles(List<string> names)
+		public async Task InsertTitles(List<string> names)
 		{
-			var results = _titlesAPI.InsertTitles(names).Result;
-			if (results.Messages.Count > 0)
+			var result = await _titlesAPI.InsertTitles(names);
+			if (!string.IsNullOrEmpty(result))
 			{
-				string message = string.Join("\r\n", results.Messages);
-				MessageBox.Show(message, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
+				MessageBox.Show(result, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 		}
 
-		public void UpdateTitles(List<AcademicTitleRecord> recordsToUpdate)
+		public async Task UpdateTitles(List<AcademicTitleRecord> recordsToUpdate)
 		{
-			var results = _titlesAPI.Update(recordsToUpdate).Result;
+			var results = await _titlesAPI.Update(recordsToUpdate);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
 			if (!string.IsNullOrEmpty(results.Message))
@@ -82,9 +86,9 @@ namespace DocumentFillerWindowApp.UserModels
 			}
 		}
 
-		public void Delete(List<AcademicTitleRecord> recordsToDelete)
+		public async Task Delete(List<AcademicTitleRecord> recordsToDelete)
 		{
-			var results = _titlesAPI.Delete(recordsToDelete).Result;
+			var results = await _titlesAPI.Delete(recordsToDelete);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
 			if (!string.IsNullOrEmpty(results.Message))
@@ -114,6 +118,8 @@ namespace DocumentFillerWindowApp.UserModels
 			AcademicTitles = new ObservableCollection<AcademicTitleRecord>(_titlesAPI.Get().Result.Titles);
 			AcademicTitles.CollectionChanged += OnCollectionChanged;
 			OnPropertyChanged("AcademicTitles");
+			// Клонируем записи для сохранения исходных значений
+			_lastAcademicTitles = AcademicTitles.Select(t => (AcademicTitleRecord)t.Clone()).ToList();
 
 			foreach (var academicTitle in AcademicTitles)
 			{
@@ -146,7 +152,7 @@ namespace DocumentFillerWindowApp.UserModels
 		}
 	}
 
-	public record AcademicTitleRecord : INotifyPropertyChanged
+	public class AcademicTitleRecord : INotifyPropertyChanged, ICloneable
 	{
 		public Guid ID { get; set; }
 		private string _name;
@@ -164,6 +170,15 @@ namespace DocumentFillerWindowApp.UserModels
 		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		public object Clone()
+		{
+			return new AcademicTitleRecord
+			{
+				ID = this.ID,
+				Name = this.Name
+			};
 		}
 	}
 }

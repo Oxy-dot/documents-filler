@@ -27,11 +27,11 @@ namespace DocumentFillerWindowApp.UserModels
 			_teachersAPI = new TeachersAPI();
 			_titlesAPI = new AcademicTitlesAPI();
 
-			UpdateTeachersFromAPI();
 			UpdateAcademicTitlesFromAPI();
+			UpdateTeachersFromAPI();
 		}
 
-		public void FindChangesAndUpdate()
+		public async Task FindChangesAndUpdate()
 		{
 			List<TeacherRecord> changes = new List<TeacherRecord>();
 
@@ -43,40 +43,46 @@ namespace DocumentFillerWindowApp.UserModels
 					continue;
 				}
 
-				var originaItem = _lastTeachers.First(a => a.ID == item.ID);
-				if (!item.Equals(originaItem)) /*item.Name != originaItem.Name*/
+				var originalItem = _lastTeachers.FirstOrDefault(a => a.ID == item.ID);
+				if (originalItem == null)
+					continue;
+
+				// Сравниваем все поля
+				if (item.FirstName != originalItem.FirstName ||
+					item.SecondName != originalItem.SecondName ||
+					item.Patronymic != originalItem.Patronymic ||
+					(item.AcademicTitle?.ID ?? Guid.Empty) != (originalItem.AcademicTitle?.ID ?? Guid.Empty))
 				{
 					changes.Add(item);
 					continue;
 				}
 			}
 
-			var toInsert = changes.Where(a => a.ID == Guid.Empty).ToList();
+			var toInsert = changes.Where(a => a.ID == Guid.Empty && (!string.IsNullOrEmpty(a.FirstName) || !string.IsNullOrEmpty(a.SecondName) || !string.IsNullOrEmpty(a.Patronymic))).ToList();
 			var toUpdate = changes.Where(a => a.ID != Guid.Empty).ToList();
 
 			if (toInsert.Count > 0)
-				InsertTeachers(toInsert);
+				await InsertTeachers(toInsert);
 
 			if (toUpdate.Count > 0)
-				UpdateTeachers(toUpdate);
+				await UpdateTeachers(toUpdate);
 
 			UpdateTeachersFromAPI();
 			_saveChangesShowButton = Visibility.Hidden;
 		}
 
-		public void InsertTeachers(List<TeacherRecord> teachers)
+		public async Task InsertTeachers(List<TeacherRecord> teachers)
 		{
-			var results = _teachersAPI.InsertTeachers(teachers.Select(a => new MinimalTeacherRecord(a)).ToList()).Result;
-			if (results.Messages.Count > 0)
+			var result = await _teachersAPI.InsertTeachers(teachers);
+			if (!string.IsNullOrEmpty(result))
 			{
-				string message = string.Join("\r\n", results.Messages);
-				MessageBox.Show(message, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
+				MessageBox.Show(result, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 		}
 
-		public void UpdateTeachers(List<TeacherRecord> recordsToUpdate)
+		public async Task UpdateTeachers(List<TeacherRecord> recordsToUpdate)
 		{
-			var results = _teachersAPI.Update(recordsToUpdate.Select(a => new MinimalTeacherRecord(a)).ToList()).Result;
+			var results = await _teachersAPI.Update(recordsToUpdate);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
 			if (!string.IsNullOrEmpty(results.Message))
@@ -97,9 +103,9 @@ namespace DocumentFillerWindowApp.UserModels
 			}
 		}
 
-		public void Delete(List<TeacherRecord> recordsToDelete)
+		public async Task Delete(List<TeacherRecord> recordsToDelete)
 		{
-			var results = _teachersAPI.Delete(recordsToDelete.Select(a => new MinimalTeacherRecord(a)).ToList()).Result;
+			var results = await _teachersAPI.Delete(recordsToDelete);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
 			if (!string.IsNullOrEmpty(results.Message))
@@ -126,13 +132,26 @@ namespace DocumentFillerWindowApp.UserModels
 		private void UpdateTeachersFromAPI()
 		{
 			Teachers.CollectionChanged -= OnCollectionChanged;
-			Teachers = new ObservableCollection<TeacherRecord>(_teachersAPI.GetFullInfo().Result.Teachers);
+			var teachersFromAPI = _teachersAPI.GetFullInfo().Result.Teachers;
+			
+			// Синхронизируем AcademicTitle с объектами из AcademicTitles
+			foreach (var teacher in teachersFromAPI)
+			{
+				if (teacher.AcademicTitle != null)
+				{
+					var matchingTitle = AcademicTitles.FirstOrDefault(t => t.ID == teacher.AcademicTitle.ID);
+					if (matchingTitle != null)
+					{
+						teacher.AcademicTitle = matchingTitle;
+					}
+				}
+			}
+			
+			Teachers = new ObservableCollection<TeacherRecord>(teachersFromAPI);
 			Teachers.CollectionChanged += OnCollectionChanged;
 			OnPropertyChanged("Teachers");
-			_lastTeachers = Teachers.Select( a => new TeacherRecord
-			{
-
-			}).ToList();
+			// Клонируем записи для сохранения исходных значений
+			_lastTeachers = Teachers.Select(t => (TeacherRecord)t.Clone()).ToList();
 			foreach (var teacher in Teachers)
 			{
 				teacher.PropertyChanged += OnInternalPropertyChanged;
@@ -179,7 +198,7 @@ namespace DocumentFillerWindowApp.UserModels
 		}
 	}
 
-	public record TeacherRecord : INotifyPropertyChanged
+	public class TeacherRecord : INotifyPropertyChanged, ICloneable
 	{
 		public Guid ID { get; set; }
 		private string _firstName;
@@ -237,6 +256,18 @@ namespace DocumentFillerWindowApp.UserModels
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
+
+		public object Clone()
+		{
+			return new TeacherRecord
+			{
+				ID = this.ID,
+				FirstName = this.FirstName,
+				SecondName = this.SecondName,
+				Patronymic = this.Patronymic,
+				AcademicTitle = this.AcademicTitle
+			};
+		}
 	}
 
 	public record BetRecord
@@ -249,23 +280,4 @@ namespace DocumentFillerWindowApp.UserModels
 		public bool IsExcessive { get; set; }
 	}
 
-	public record MinimalTeacherRecord
-	{
-		public Guid ID { get; set; }
-		public string FirstName { get; set; }
-		public string SecondName { get; set; }
-		public string Patronymic { get; set; }
-		public MinimalTeacherRecord(TeacherRecord teacher)
-		{
-			ID = teacher.ID;
-			FirstName = teacher.FirstName;
-			SecondName = teacher.SecondName;
-			Patronymic = teacher.Patronymic;
-		}
-
-		public MinimalTeacherRecord()
-		{
-
-		}
-	}
 }

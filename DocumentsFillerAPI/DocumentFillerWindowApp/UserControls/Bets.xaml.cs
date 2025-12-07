@@ -30,7 +30,7 @@ namespace DocumentFillerWindowApp.UserControls
 				return;
 			}
 
-			_viewModel.Delete((MainGrid.SelectedItems as List<BetDisplayRecord>)!);
+			_viewModel.Delete(new List<BetDisplayRecord>(MainGrid.SelectedItems.Cast<BetDisplayRecord>()));
 		}
 
 		private void Button_Click_1(object sender, RoutedEventArgs e)

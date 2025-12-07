@@ -13,21 +13,7 @@ namespace DocumentsFillerAPI.Endpoints
 	{
 		private TeacherProvider _provider = new TeacherProvider();
 		private BetPostgreProvider _betProvider = new BetPostgreProvider();
-
-		[HttpGet("get")]
-		public async Task<IActionResult> GetTeachers()
-		{
-			var teachers = await _provider.List(0, 0);
-
-			var teachersJson = JsonSerializer.Serialize(teachers.Teachers);
-			var jsonResult = new JsonObject()
-			{
-				["message"] = teachers.Message.Message,
-				["teachers"] = JsonNode.Parse(teachersJson)!.AsArray()
-			};
-
-			return Ok(jsonResult);
-		}
+		private AcademicTitlePostgreProvider _academicTitleProvider = new AcademicTitlePostgreProvider();
 
 		[HttpGet("getFullInfo")]
 		public async Task<IActionResult> GetTeachersFullInfo()
@@ -49,13 +35,17 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
-				var teachersToInsert = jBody?["insert"]?.AsArray()?.Select(a => new TeacherStruct
+				var jBody = await Request.GetBodyJson();
+				var teachersToInsert = jBody?["insert"]?.AsArray()?.Select(a => new TeacherFullInfoStruct
 				{
 					FirstName = (string)a["firstName"]!,
 					SecondName = (string)a["secondName"]!,
-					Patronymic = (string)a["patronymic"]!
-				}).ToList() ?? new List<TeacherStruct>();
+					Patronymic = (string)a["patronymic"]!,
+					AcademicTitle = new AcademicTitleStruct
+					{
+						ID = (Guid)a["academicTitleID"]!
+					}
+				}).ToList() ?? new List<TeacherFullInfoStruct>();
 
 				if (teachersToInsert.Count == 0)
 					throw new Exception("Teachers to insert count = 0");
@@ -64,12 +54,10 @@ namespace DocumentsFillerAPI.Endpoints
 
 				var jsonResult = new JsonObject()
 				{
-					["message"] = result.Message.Message,
-					["inserted"] = JsonNode.Parse(JsonSerializer.Serialize(result.Inserted))!.AsArray(),
-					["notInserted"] = JsonNode.Parse(JsonSerializer.Serialize(result.NotInserted))!.AsArray(),
+					["message"] = result.Message,
 				};
 
-				if (result.Message.IsSuccess)
+				if (result.IsSuccess)
 					return Ok(jsonResult);
 				else
 					return BadRequest(jsonResult);
@@ -78,8 +66,6 @@ namespace DocumentsFillerAPI.Endpoints
 			{
 				var jsonResult = new JsonObject()
 				{
-					["inserted"] = JsonNode.Parse(JsonSerializer.Serialize(new List<TeacherStruct>()))!.AsArray(),
-					["notInserted"] = JsonNode.Parse(JsonSerializer.Serialize(new List<string>()))!.AsArray(),
 					["message"] = ex.Message
 				};
 
@@ -92,14 +78,18 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
-				var teachersToUpdate = jBody?["update"]?.AsArray()?.Select(a => new TeacherStruct
+				var jBody = await Request.GetBodyJson();
+				var teachersToUpdate = jBody?["update"]?.AsArray()?.Select(a => new TeacherFullInfoStruct
 				{
 					ID = (Guid)a["id"]!,
 					FirstName = (string)a["firstName"]!,
 					SecondName = (string)a["secondName"]!,
 					Patronymic = (string)a["patronymic"]!,
-				}).ToList() ?? new List<TeacherStruct>();
+					AcademicTitle = new AcademicTitleStruct
+					{
+						ID = (Guid)a["academicTitleID"]!
+					}
+				}).ToList() ?? new List<TeacherFullInfoStruct>();
 
 				if (teachersToUpdate.Count == 0)
 					throw new Exception("Teachers are empty");
@@ -119,7 +109,7 @@ namespace DocumentsFillerAPI.Endpoints
 				var jsonResult = new JsonObject
 				{
 					["message"] = ex.Message,
-					["updateResults"] = JsonNode.Parse(JsonSerializer.Serialize(new List<TeacherStruct>()))
+					["updateResults"] = JsonNode.Parse(JsonSerializer.Serialize(new List<TeacherFullInfoStruct>()))
 				};
 				return BadRequest(jsonResult);
 			}
@@ -130,7 +120,7 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
+				var jBody = await Request.GetBodyJson();
 				var teachersToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a["id"]!).ToList() ?? new List<Guid>();
 
 				if (teachersToDelete.Count == 0)
@@ -151,7 +141,7 @@ namespace DocumentsFillerAPI.Endpoints
 				var jsonResult = new JsonObject
 				{
 					["message"] = ex.Message,
-					["deleteResults"] = JsonNode.Parse(JsonSerializer.Serialize(new List<TeacherStruct>()))
+					["deleteResults"] = JsonNode.Parse(JsonSerializer.Serialize(new List<TeacherFullInfoStruct>()))
 				};
 				return BadRequest(jsonResult);
 			}
@@ -162,7 +152,7 @@ namespace DocumentsFillerAPI.Endpoints
 		{
 			try
 			{
-				var jBody = Request.GetBodyJson();
+				var jBody = await Request.GetBodyJson();
 				var departmentID = (Guid)jBody?["departmentID"]!;
 				var teachersInfoToInsert = jBody?["insertTeachersFullInfo"]?.AsArray()?.Select(a => new
 				{
@@ -190,9 +180,11 @@ namespace DocumentsFillerAPI.Endpoints
 				//ResultMessage? mainBetInsertResult = default;
 				//ResultMessage? excessiveBetInsertResult = default;
 
-				List<TeacherStruct> insertedTeachers = new List<TeacherStruct>();
-				List<string> notInsertedTeachers = new List<string>();
-				string teachersInsertMessage = string.Empty;
+				string insertTeachersMessage = string.Empty;
+
+				//List<TeacherFullInfoStruct> insertedTeachers = new List<TeacherFullInfoStruct>();
+				//List<string> notInsertedTeachers = new List<string>();
+				//string teachersInsertMessage = string.Empty;
 
 				string insertMainBetMessage = string.Empty;
 				List<BetPostgreProvider.UpdateBetStruct> updatedMainBets = new List<BetPostgreProvider.UpdateBetStruct>();
@@ -202,10 +194,9 @@ namespace DocumentsFillerAPI.Endpoints
 				List<BetPostgreProvider.UpdateBetStruct> updatedExcessiveBets = new List<BetPostgreProvider.UpdateBetStruct>();
 				string updateExcessiveBetMessage = string.Empty;
 
-
 				if (teachersNamesToInsert.Count > 0)
 				{
-					List<TeacherStruct> tempTeachersStructs = new List<TeacherStruct>();
+					List<TeacherFullInfoStruct> tempTeachersStructs = new List<TeacherFullInfoStruct>();
 					foreach (var teacherName in teachersNamesToInsert)
 					{
 						try
@@ -213,20 +204,17 @@ namespace DocumentsFillerAPI.Endpoints
 							var teacherNameArray = teacherName.Split(' ');
 							var firstNameWithPatronymic = teacherNameArray[1].Split('.');
 
-							tempTeachersStructs.Add(new TeacherStruct
+							tempTeachersStructs.Add(new TeacherFullInfoStruct
 							{
 								FirstName = firstNameWithPatronymic[0],
 								SecondName = teacherNameArray[0],
-								Patronymic = firstNameWithPatronymic.Length == 2 ? firstNameWithPatronymic[1] : ""
+								Patronymic = firstNameWithPatronymic.Length == 2 ? firstNameWithPatronymic[1] : "",
 							});
 						}
 						catch { }
 					}
 
-					var insertResult = await _provider.Insert(tempTeachersStructs);
-					insertedTeachers = insertResult.Inserted;
-					notInsertedTeachers = insertResult.NotInserted;
-					teachersInsertMessage = insertResult.Message.Message;
+					insertTeachersMessage = (await _provider.Insert(tempTeachersStructs)).Message;
 				}
 
 				//Update main bets
@@ -351,12 +339,10 @@ namespace DocumentsFillerAPI.Endpoints
 
 				var jsonResult = new JsonObject
 				{
-					["message"] = "Success",
+					["message"] = "Успешно",
 					["teachers"] = new JsonObject
 					{
-						["message"] = teachersInsertMessage,
-						["inserted"] = JsonNode.Parse(JsonSerializer.Serialize(insertedTeachers)),
-						["notInserted"] = JsonNode.Parse(JsonSerializer.Serialize(notInsertedTeachers))
+						["message"] = insertTeachersMessage,
 					},
 					["mainBets"] = new JsonObject
 					{

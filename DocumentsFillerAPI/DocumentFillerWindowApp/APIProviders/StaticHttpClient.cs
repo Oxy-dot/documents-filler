@@ -14,7 +14,7 @@ namespace DocumentFillerWindowApp.APIProviders
 
 		static StaticHttpClient()
 		{
-			_httpClient.Timeout = TimeSpan.FromSeconds(10);
+			_httpClient.Timeout = TimeSpan.FromSeconds(180);
 			_httpClient.DefaultRequestHeaders.Add("access_token", ACCESS_TOKEN);
 		}
 
@@ -52,7 +52,7 @@ namespace DocumentFillerWindowApp.APIProviders
 				uri += string.Join("&", queryParams.Select(param => $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value)}"));
 			}
 
-			HttpContent httpContent = new StringContent(jBody.ToString());
+			HttpContent httpContent = new StringContent(jBody.ToString(), new MediaTypeHeaderValue("application/json"));
 
 			var result = await _httpClient.PostAsync(uri, httpContent, ct);
 			var resultString = await result.Content.ReadAsStringAsync();
