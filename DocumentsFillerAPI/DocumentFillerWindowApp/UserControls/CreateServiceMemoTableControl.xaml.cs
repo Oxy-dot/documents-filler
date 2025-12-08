@@ -59,16 +59,18 @@ namespace DocumentFillerWindowApp.UserControls
 
 		private void StartYearNumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
 		{
-			// Разрешаем только цифры
+			// Разрешаем только цифры и ограничиваем до 2 символов
 			Regex regex = new Regex("[^0-9]+");
-			e.Handled = regex.IsMatch(e.Text) && (sender as TextBox).Text /*_viewModel.StartYearTextBoxText*/.Length <= 2;
+			TextBox textBox = sender as TextBox;
+			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 2);
 		}
 
 		private void EndYearNumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
 		{
-			// Разрешаем только цифры
+			// Разрешаем только цифры и ограничиваем до 2 символов
 			Regex regex = new Regex("[^0-9]+");
-			e.Handled = regex.IsMatch(e.Text) && _viewModel.EndYearTextBoxText.Length <= 2;
+			TextBox textBox = sender as TextBox;
+			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 2);
 		}
 
 		private void NumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

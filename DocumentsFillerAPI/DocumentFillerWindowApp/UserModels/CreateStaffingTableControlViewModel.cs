@@ -135,13 +135,55 @@ namespace DocumentFillerWindowApp.UserModels
 		{
 			try
 			{
+				if (string.IsNullOrWhiteSpace(StartYearTextBoxText))
+				{
+					MessageBox.Show("Не указано начало учебного года", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+
+				if (string.IsNullOrWhiteSpace(EndYearTextBoxText))
+				{
+					MessageBox.Show("Не указан конец учебного года", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+
+				if (string.IsNullOrWhiteSpace(_protocolNumberText))
+				{
+					MessageBox.Show("Не указан номер протокола", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+
+				if (_selectedDepartment == null)
+				{
+					MessageBox.Show("Не выбран отдел", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+
+				if (!int.TryParse(StartYearTextBoxText, out int firstYear))
+				{
+					MessageBox.Show("Неверный формат начала учебного года", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+
+				if (!int.TryParse(EndYearTextBoxText, out int secondYear))
+				{
+					MessageBox.Show("Неверный формат конца учебного года", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+
+				if (!int.TryParse(_protocolNumberText, out int protocolNumber))
+				{
+					MessageBox.Show("Неверный формат номера протокола", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+
 				var data = new FilesAPI.StaffingTemplateData()
 				{
 					DepartmentName = _selectedDepartment.Name,
-					FirstAcademicYear = int.Parse(StartYearTextBoxText),
-					SecondAcademicYear = int.Parse(EndYearTextBoxText),
+					FirstAcademicYear = firstYear,
+					SecondAcademicYear = secondYear,
 					ProtocolDate = _protocolDate,
-					ProtocolNumber = int.Parse(_protocolNumberText),
+					ProtocolNumber = protocolNumber,
 					MainStaff = MainStaff.Select(a => new FilesAPI.StaffingTemplateRowData
 					{
 						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
@@ -154,7 +196,7 @@ namespace DocumentFillerWindowApp.UserModels
 						AcademicTitle = a.AcademicTitle.Name,
 						Bet = 0, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
-					InternallStaff = InternallStaff.Select(a => new FilesAPI.StaffingTemplateRowData
+					InternalStaff = InternallStaff.Select(a => new FilesAPI.StaffingTemplateRowData
 					{
 						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
 						AcademicTitle = a.AcademicTitle.Name,
@@ -170,11 +212,22 @@ namespace DocumentFillerWindowApp.UserModels
 					return;
 				}
 
+				var excelDir = Path.Combine(Directory.GetCurrentDirectory(), "excel");
+				if (!Directory.Exists(excelDir))
+				{
+					Directory.CreateDirectory(excelDir);
+				}
+
+				var filePath = Path.Combine(excelDir, $"{fileName}.xlsx");
 				var workbook = new XSSFWorkbook(result.Result);
-				using var fileStream = new FileStream($"/excel/{fileName}", FileMode.OpenOrCreate, FileAccess.Write);
+				using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
 
 				workbook.Write(fileStream);
-				System.Diagnostics.Process.Start($"./{fileName}.xlsx");
+				System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+				{
+					FileName = filePath,
+					UseShellExecute = true
+				});
 			}
 			catch (Exception ex)
 			{

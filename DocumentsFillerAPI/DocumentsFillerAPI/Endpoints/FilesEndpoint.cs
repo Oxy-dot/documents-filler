@@ -165,7 +165,7 @@ namespace DocumentsFillerAPI.Endpoints
 						AcademicTitle = (string)a["academicTitle"]!,
 						Bet = (double)a["bet"]!
 					}).ToList(),
-					ExternalStaff = jBody["ExternalStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.StaffingTemplateRow
+					ExternalStaff = jBody["externalStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.StaffingTemplateRow
 					{
 						FullName = (string)a["fullName"]!,
 						AcademicTitle = (string)a["academicTitle"]!,
@@ -175,12 +175,17 @@ namespace DocumentsFillerAPI.Endpoints
 
 				var stream = new MemoryStream();
 
-				_excelFilesGenerator.GenerateStaffingTemplate(data).Write(stream);
+				_excelFilesGenerator.GenerateStaffingTemplate(data).Write(stream, true);
 				stream.Position = 0;
 
-				await FileHelper.AddNewFile(stream, fileName, typeID);
+				Stream streamToPg = new MemoryStream();
+				stream.CopyTo(streamToPg);
+				streamToPg.Position = 0;
 
-				return new FileStreamResult(stream, "application/xml");
+				await FileHelper.AddNewFile(streamToPg, fileName, typeID);
+
+				stream.Position = 0;
+				return new FileStreamResult(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 			}
 			catch (Exception ex)
 			{
@@ -188,7 +193,7 @@ namespace DocumentsFillerAPI.Endpoints
 				{
 					["message"] = ex.Message,
 				};
-				return BadRequest(ex);
+				return BadRequest(jsonResult);
 			}
 		}
 
@@ -274,7 +279,7 @@ namespace DocumentsFillerAPI.Endpoints
 
 				var stream = new MemoryStream();
 
-				_excelFilesGenerator.GenerateServiceMemo(data).Write(stream);
+				_excelFilesGenerator.GenerateServiceMemo(data).Write(stream, true);
 				stream.Position = 0;
 
 				await FileHelper.AddNewFile(stream, fileName, typeID);

@@ -36,7 +36,7 @@ namespace DocumentFillerWindowApp.APIProviders
 							["academicTitle"] = a.AcademicTitle,
 							["bet"] = a.Bet
 						}).ToArray()),
-						["internallStaff"] = new JsonArray(data.InternallStaff.Select(a => new JsonObject()
+						["internalStaff"] = new JsonArray(data.InternalStaff.Select(a => new JsonObject()
 						{
 							["fullName"] = a.FullName,
 							["academicTitle"] = a.AcademicTitle,
@@ -70,7 +70,7 @@ namespace DocumentFillerWindowApp.APIProviders
 		{
 			public string DepartmentName { get; init; }
 			public List<StaffingTemplateRowData> MainStaff { get; init; }
-			public List<StaffingTemplateRowData> InternallStaff { get; init; }
+			public List<StaffingTemplateRowData> InternalStaff { get; init; }
 			public List<StaffingTemplateRowData> ExternalStaff { get; init; }
 			public int FirstAcademicYear { get; init; }
 			public int SecondAcademicYear { get; init; }

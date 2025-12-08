@@ -96,22 +96,35 @@ namespace DocumentFillerWindowApp.APIProviders
 
 		public static async Task<(Stream? Response, string Message, bool IsSuccess)> PostStream(string controller, string method, JsonNode jBody, List<KeyValuePair<string, string>> queryParams = default, CancellationToken ct = default)
 		{
-			string uri = $"{SERVER_URL}/{controller.Trim()}/{method.Trim()}";
-			if (queryParams != null && queryParams.Count != 0)
+			try
 			{
-				uri += "?";
-				uri += string.Join("&", queryParams.Select(param => $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value)}"));
+				string uri = $"{SERVER_URL}/{controller.Trim()}/{method.Trim()}";
+				if (queryParams != null && queryParams.Count != 0)
+				{
+					uri += "?";
+					uri += string.Join("&", queryParams.Select(param => $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value)}"));
+				}
+
+				HttpContent httpContent = new StringContent(jBody.ToString(), new MediaTypeHeaderValue("application/json"));
+
+				var result = await _httpClient.PostAsync(uri, httpContent, ct);
+				var resultStream = await result.Content.ReadAsStreamAsync();
+
+				if (!result.IsSuccessStatusCode)
+				{
+					using (var reader = new StreamReader(resultStream))
+					{
+						var errorMessage = await reader.ReadToEndAsync();
+						return new(default, $"StatusCode: {result.StatusCode}; Message: {errorMessage}", false);
+					}
+				}
+
+				return new(resultStream, "Success", true);
 			}
-
-			HttpContent httpContent = new StringContent(jBody.ToString());
-
-			var result = await _httpClient.PostAsync(uri, httpContent, ct);
-			var resultStream = await result.Content.ReadAsStreamAsync();
-
-			if (!result.IsSuccessStatusCode)
-				return new(default, $"StatusCode: {result.StatusCode}; Message: {resultStream}", false);
-
-			return new(resultStream, "Success", true);
+			catch (Exception ex)
+			{
+				return new(default, ex.Message, false);
+			}
 		}
 
 		public static async Task<(T Response, string Message, bool IsSuccess)> PostFile<T>(string controller, string method, Stream fileStream, string fileName, CancellationToken ct = default) where T : JsonNode
