@@ -41,8 +41,8 @@
                   materialDesign:DataGridAssist.ColumnHeaderPadding="12,6"
                   Margin="0,0,0,8">
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding FirstName}" Header="Фамилия"/>
-                <DataGridTextColumn Binding="{Binding SecondName}" Header="Имя"/>
+                <DataGridTextColumn Binding="{Binding SecondName}" Header="Фамилия"/>
+                <DataGridTextColumn Binding="{Binding FirstName}" Header="Имя"/>
                 <DataGridTextColumn Binding="{Binding Patronymic}" Header="Отчество"/>
             </DataGrid.Columns>
         </DataGrid>

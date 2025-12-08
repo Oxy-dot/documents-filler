@@ -41,8 +41,8 @@
             CellEditEnding="MainGrid_CellEditEnding"
             Grid.Row="1">
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}" Header="Фамилия" />
-                <DataGridTextColumn Binding="{Binding SecondName, UpdateSourceTrigger=PropertyChanged}" Header="Имя" />
+                <DataGridTextColumn Binding="{Binding SecondName, UpdateSourceTrigger=PropertyChanged}" Header="Фамилия" />
+                <DataGridTextColumn Binding="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}" Header="Имя" />
                 <DataGridTextColumn Binding="{Binding Patronymic, UpdateSourceTrigger=PropertyChanged}" Header="Отчество" />
                 <DataGridComboBoxColumn SelectedItemBinding="{Binding AcademicTitle, UpdateSourceTrigger=LostFocus}" DisplayMemberPath="Name" Header="Должность">
                     <DataGridComboBoxColumn.ElementStyle>

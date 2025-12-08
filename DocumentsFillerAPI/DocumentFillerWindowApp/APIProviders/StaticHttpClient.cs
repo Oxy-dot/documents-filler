@@ -43,6 +43,36 @@ namespace DocumentFillerWindowApp.APIProviders
 			}
 		}
 
+		public static async Task<(Stream? Response, string Message, bool IsSuccess)> GetStream(string controller, string method, List<KeyValuePair<string, string>> queryParams = default, CancellationToken ct = default)
+		{
+			try
+			{
+				string uri = $"{SERVER_URL}/{controller.Trim()}/{method.Trim()}";
+				if (queryParams != null && queryParams.Count != 0)
+				{
+					uri += "?";
+					uri += string.Join("&", queryParams.Select(param => $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value)}"));
+				}
+				var result = await _httpClient.GetAsync(uri, ct);
+				var resultStream = await result.Content.ReadAsStreamAsync();
+
+				if (!result.IsSuccessStatusCode)
+				{
+					using (var reader = new StreamReader(resultStream))
+					{
+						var errorMessage = await reader.ReadToEndAsync();
+						return new(default, $"StatusCode: {result.StatusCode}; Message: {errorMessage}", false);
+					}
+				}
+
+				return new(resultStream, "Success", true);
+			}
+			catch (Exception ex)
+			{
+				return new(default, ex.Message, false);
+			}
+		}
+
 		public static async Task<(T Response, string Message, bool IsSuccess)> Post<T>(string controller, string method, JsonNode jBody, List<KeyValuePair<string, string>> queryParams = default, CancellationToken ct = default) where T : JsonNode
 		{
 			string uri = $"{SERVER_URL}/{controller.Trim()}/{method.Trim()}";

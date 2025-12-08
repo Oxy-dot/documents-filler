@@ -166,7 +166,22 @@ namespace DocumentFillerWindowApp.APIProviders
 				if (response.Response == null)
 					throw new Exception("Response is null");
 
-				var message = response.Response["message"] != null ? (string)response.Response["message"]! : "";
+				string responseMessage = (string)response.Response["message"]!;
+
+				string message = string.Empty;
+				if (responseMessage == "Успешно")
+				{
+					string teacherInsertResult = (string)response.Response!["teachers"]!["message"]!;
+					string mainBetsInsertResult = (string)response.Response!["mainBets"]!["insertMessage"]!;
+					string mainBetsUpdateResult = (string)response.Response!["mainBets"]!["updateMessage"]!;
+					string excessiveBetsInsertResult = (string)response.Response!["excessiveBets"]!["insertMessage"]!;
+					string excessiveBetsUpdateResult = (string)response.Response!["excessiveBets"]!["updateMessage"]!;
+
+					message = $"Ошибки вставки преподавателей: {teacherInsertResult}\nОшибки вставки нормативных ставок: {mainBetsInsertResult}\nОшибки обновлений нормативных ставок: {mainBetsUpdateResult}\nОшибки вставки сверхнормативных ставок: {excessiveBetsInsertResult}\nОшибки обновления сверхнормативных ставок: {excessiveBetsUpdateResult}";
+				}
+				else
+					message = responseMessage;
+				
 				return (message, response.IsSuccess);
 			}
 			catch (Exception ex)

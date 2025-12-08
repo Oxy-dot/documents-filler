@@ -1,5 +1,4 @@
-﻿using DocumentsFillerAPI.Controllers;
-using DocumentsFillerAPI.Providers;
+﻿using DocumentsFillerAPI.Providers;
 using DocumentsFillerAPI.Structures;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -206,9 +205,9 @@ namespace DocumentsFillerAPI.Endpoints
 
 							tempTeachersStructs.Add(new TeacherFullInfoStruct
 							{
-								FirstName = firstNameWithPatronymic[0],
-								SecondName = teacherNameArray[0],
-								Patronymic = firstNameWithPatronymic.Length == 2 ? firstNameWithPatronymic[1] : "",
+								FirstName = firstNameWithPatronymic[0].Trim(),
+								SecondName = teacherNameArray[0].Trim(),
+								Patronymic = firstNameWithPatronymic.Length >= 2 ? firstNameWithPatronymic[1].Trim() : "",
 							});
 						}
 						catch { }

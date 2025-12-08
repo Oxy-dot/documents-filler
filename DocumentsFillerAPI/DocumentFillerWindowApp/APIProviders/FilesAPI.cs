@@ -256,5 +256,55 @@ namespace DocumentFillerWindowApp.APIProviders
 			public double? ExcessibeBet { get; init; }
 			public string ShortFullName { get; init; }
 		}
+
+		public async Task<(string Message, List<FileRecord> Files)> Get()
+		{
+			try
+			{
+				var response = await StaticHttpClient.Get<JsonObject>(className, "get", new List<KeyValuePair<string, string>> 
+				{ 
+					new("count", "0"),
+					new("startIndex", "0")
+				});
+				if (!response.IsSuccess)
+					throw new Exception(response.Message);
+
+				if (response.Response == null)
+					throw new Exception("Response is null");
+
+				var files = response.Response["files"]!.AsArray().Select(a => new FileRecord
+				{
+					FileID = (Guid)a["FileID"]!,
+					CreationDate = (DateTime)a["CreationDate"]!,
+					Path = (string)a["Path"]!,
+					FileType = (string)a["FileType"]!
+				}).ToList();
+
+				return ("", files);
+			}
+			catch (Exception ex)
+			{
+				return (ex.Message, new List<FileRecord>());
+			}
+		}
+
+		public async Task<(string Message, Stream? Stream)> DownloadFile(Guid fileID)
+		{
+			try
+			{
+				var response = await StaticHttpClient.GetStream(className, "download", new List<KeyValuePair<string, string>> 
+				{ 
+					new("fileID", fileID.ToString())
+				});
+				if (!response.IsSuccess)
+					throw new Exception(response.Message);
+
+				return ("", response.Response);
+			}
+			catch (Exception ex)
+			{
+				return (ex.Message, null);
+			}
+		}
     }
 }

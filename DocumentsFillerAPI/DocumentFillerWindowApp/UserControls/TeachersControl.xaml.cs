@@ -16,7 +16,7 @@ namespace DocumentFillerWindowApp.UserControls
 
 		public TeachersControl()
 		{
-			_viewModel = new TeachersControlViewModel();
+			_viewModel = new TeachersControlViewModel(false);
 			DataContext = _viewModel;
 			InitializeComponent();
 		}

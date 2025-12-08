@@ -1,6 +1,7 @@
 ﻿using DocumentsFillerAPI.Controllers;
 using DocumentsFillerAPI.Structures;
 using Npgsql;
+using NpgsqlTypes;
 using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 
@@ -86,7 +87,7 @@ namespace DocumentsFillerAPI.Providers
 							cmd.Parameters.AddWithValue("@firstName", teacher.FirstName);
 							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
 							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
-							cmd.Parameters.AddWithValue("@academicTitle", teacher.AcademicTitle?.ID);
+							cmd.Parameters.AddWithValue("@academicTitle", NpgsqlTypes.NpgsqlDbType.Uuid, (object)teacher.AcademicTitle?.ID ?? DBNull.Value);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
@@ -140,7 +141,7 @@ namespace DocumentsFillerAPI.Providers
 							cmd.Parameters.AddWithValue("@firstName", teacher.FirstName);
 							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
 							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
-							cmd.Parameters.AddWithValue("@academicTitle", teacher.AcademicTitle?.ID);
+							cmd.Parameters.AddWithValue("@academicTitle", NpgsqlDbType.Uuid, (object)teacher.AcademicTitle?.ID ?? DBNull.Value);
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)

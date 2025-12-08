@@ -20,7 +20,7 @@ namespace DocumentFillerWindowApp.ModalWindows
 		public SelectTeachersWindow(List<TeacherRecord> notInclude = default)
 		{
 			InitializeComponent();
-			_viewModel = new TeachersControlViewModel();
+			_viewModel = new TeachersControlViewModel(true);
 			_viewModel.RecreateCollection(_viewModel.Teachers.Except(notInclude ?? new List<TeacherRecord>()).ToList());
 			DataContext = _viewModel;
 		}

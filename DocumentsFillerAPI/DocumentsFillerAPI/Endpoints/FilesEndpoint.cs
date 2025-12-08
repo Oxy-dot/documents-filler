@@ -31,6 +31,37 @@ namespace DocumentsFillerAPI.Endpoints
 			return Ok(jsonResult);
 		}
 
+		[HttpGet("download")]
+		public async Task<IActionResult> DownloadFile(Guid fileID)
+		{
+			try
+			{
+				var files = await _provider.List(0, 0);
+				var file = files.Files.FirstOrDefault(f => f.FileID == fileID);
+
+				if (file == null || string.IsNullOrEmpty(file.Path))
+					return NotFound(new JsonObject() { ["message"] = "File not found" });
+
+				if (!System.IO.File.Exists(file.Path))
+					return NotFound(new JsonObject() { ["message"] = "File not found on disk" });
+
+				var fileStream = new FileStream(file.Path, FileMode.Open, FileAccess.Read);
+				var fileName = Path.GetFileName(file.Path);
+				
+				// Извлекаем оригинальное имя файла (убираем GUID префикс)
+				if (fileName.Contains('_'))
+				{
+					fileName = fileName.Substring(fileName.IndexOf('_') + 1);
+				}
+
+				return File(fileStream, "application/octet-stream", fileName);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new JsonObject() { ["message"] = ex.Message });
+			}
+		}
+
 		//[HttpPost("insert")]
 		//public async Task<IActionResult> InsertFiles()
 		//{

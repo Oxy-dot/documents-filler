@@ -78,6 +78,12 @@ namespace DocumentFillerWindowApp.UserControls
 				},
 				new NavigationRailItem
 				{
+					Title = "Файлы",
+					IconKind = PackIconKind.Folder,
+					Id = "Files"
+				},
+				new NavigationRailItem
+				{
 					Title = "Создать штатное расписание",
 					IconKind = PackIconKind.ClipboardText,
 					Id = "CreateStaffingTable"

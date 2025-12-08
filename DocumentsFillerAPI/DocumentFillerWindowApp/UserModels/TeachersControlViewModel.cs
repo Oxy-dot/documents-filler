@@ -21,11 +21,13 @@ namespace DocumentFillerWindowApp.UserModels
 		}
 
 		public List<AcademicTitleRecord> AcademicTitles { get; set; } = new List<AcademicTitleRecord>();
-
-		public TeachersControlViewModel() 
+		private bool _onlyWithAcademicTitle;
+		public TeachersControlViewModel(bool onlyWithAcademicTitle) 
 		{
 			_teachersAPI = new TeachersAPI();
 			_titlesAPI = new AcademicTitlesAPI();
+
+			_onlyWithAcademicTitle = onlyWithAcademicTitle;
 
 			UpdateAcademicTitlesFromAPI();
 			UpdateTeachersFromAPI();
@@ -133,7 +135,10 @@ namespace DocumentFillerWindowApp.UserModels
 		{
 			Teachers.CollectionChanged -= OnCollectionChanged;
 			var teachersFromAPI = _teachersAPI.GetFullInfo().Result.Teachers;
-			
+			if (_onlyWithAcademicTitle)
+			{
+				teachersFromAPI = teachersFromAPI.Where(a => a.AcademicTitle != null).ToList();
+			}
 			// Синхронизируем AcademicTitle с объектами из AcademicTitles
 			foreach (var teacher in teachersFromAPI)
 			{
@@ -267,6 +272,19 @@ namespace DocumentFillerWindowApp.UserModels
 				Patronymic = this.Patronymic,
 				AcademicTitle = this.AcademicTitle
 			};
+		}
+
+		public override bool Equals(object? obj)
+		{
+			if (obj == null)
+				return false;
+
+			return ((TeacherRecord)obj)!.ID == ID;
+		}
+
+		public override int GetHashCode()
+		{
+			return ID.GetHashCode();
 		}
 	}
 
