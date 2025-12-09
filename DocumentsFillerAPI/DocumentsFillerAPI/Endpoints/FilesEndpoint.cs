@@ -282,9 +282,14 @@ namespace DocumentsFillerAPI.Endpoints
 				_excelFilesGenerator.GenerateServiceMemo(data).Write(stream, true);
 				stream.Position = 0;
 
-				await FileHelper.AddNewFile(stream, fileName, typeID);
+				Stream streamToPg = new MemoryStream();
+				stream.CopyTo(streamToPg);
+				streamToPg.Position = 0;
 
-				return new FileStreamResult(stream, "application/xml");
+				await FileHelper.AddNewFile(streamToPg, fileName, typeID);
+
+				stream.Position = 0;
+				return new FileStreamResult(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 			}
 			catch (Exception ex)
 			{
