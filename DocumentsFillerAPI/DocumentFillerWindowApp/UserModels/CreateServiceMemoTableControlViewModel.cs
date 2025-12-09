@@ -268,16 +268,41 @@ namespace DocumentFillerWindowApp.UserModels
 					Directory.CreateDirectory(excelDir);
 				}
 
-				var filePath = Path.Combine(excelDir, fileName);
-				var workbook = new XSSFWorkbook(result.Result);
-				using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-
-				workbook.Write(fileStream);
-				System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+				// Убеждаемся, что расширение .xlsx есть в имени файла
+				if (!fileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
 				{
-					FileName = filePath,
-					UseShellExecute = true
-				});
+					fileName = fileName + ".xlsx";
+				}
+
+				var filePath = Path.Combine(excelDir, fileName);
+				
+				// Копируем Stream в файл
+				if (result.Result != null)
+				{
+					// Устанавливаем позицию Stream в начало, если это возможно
+					if (result.Result.CanSeek)
+					{
+						result.Result.Position = 0;
+					}
+					
+					using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+					{
+						result.Result.CopyTo(fileStream);
+					}
+					
+					// Закрываем Stream после использования
+					result.Result.Dispose();
+					
+					System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+					{
+						FileName = filePath,
+						UseShellExecute = true
+					});
+				}
+				else
+				{
+					MessageBox.Show("Результат пуст", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+				}
 			}
 			catch (Exception ex)
 			{

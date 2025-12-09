@@ -1,10 +1,5 @@
 ﻿using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
-using NPOI.HSSF.UserModel;
-using DocumentsFillerAPI.ExcelHelper;
-using System.IO;
-using System.Text.RegularExpressions;
-using System;
 
 namespace DocumentsFillerAPI.ExcelWorker
 {
@@ -12,26 +7,26 @@ namespace DocumentsFillerAPI.ExcelWorker
 	{
 		private readonly string[] academicTitles = { "зав.каф.", "профессор", "доцент", "ст.препод.", "ассистент", "преподаватель" };
 		#region StaffingTemplate
-		public XSSFWorkbook GenerateStaffingTemplate1(StaffingTemplateInputData inputData)
+		public XSSFWorkbook GenerateStaffingTemplate(StaffingTemplateInputData inputData)
 		{
 			XSSFWorkbook xssfWorkbook = new XSSFWorkbook();
 			var headerStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, true);
-			var firstHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, offBorder: true, textWrap: false);
-			var tableHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default);
-			var tableColumnsBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center);
+			var firstHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, offBorder: true, textWrap: false, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.None);
+			var tableHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small);
+			var tableColumnsBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, horizontalAligment: HorizontalAlignment.Left, textWrap: false, verticalAligment: VerticalAlignment.Bottom);
 			var tableColumnsNotBoldStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small);
 			var tableColumnsBoldNotWrapStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, textWrap: false, horizontalAligment: HorizontalAlignment.Center);
+			var footerStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, textWrap: false, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.Bottom);
 
 			var sheet = xssfWorkbook.CreateSheet();
 
-			// Устанавливаем ширины колонок как в шаблоне (в единицах 1/256 символа)
-			sheet.SetColumnWidth(0, (int)(33.7 * 256));  // ~8627
-			sheet.SetColumnWidth(1, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(2, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(3, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(4, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(5, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(6, (int)(9.43 * 256));  // ~2414
+			sheet.SetColumnWidth(0, 5266);
+			sheet.SetColumnWidth(1, 2816);
+			sheet.SetColumnWidth(2, 2816);
+			sheet.SetColumnWidth(3, 2816);
+			sheet.SetColumnWidth(4, 2816);
+			sheet.SetColumnWidth(5, 2816);
+			sheet.SetColumnWidth(6, 2816);
 
 			// Добавляем объединенные области как в шаблоне
 			sheet.AddMergedRegion(new NPOI.SS.Util.CellRangeAddress(2, 2, 1, 6));
@@ -77,7 +72,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 
 			// Строка 6 - "1. Основной штат"
 			var row6 = sheet.CreateRow(6);
-			row6.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldStyle).SetCellValue("1. Основной штат");
+			row6.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldStyle).SetCellValue("1. Основной штат:");
 			row6.CreateCell(1, CellType.String).SetStyle(tableColumnsBoldStyle);
 			row6.CreateCell(2, CellType.String).SetStyle(tableColumnsBoldStyle);
 			row6.CreateCell(3, CellType.String).SetStyle(tableColumnsBoldStyle);
@@ -97,12 +92,12 @@ namespace DocumentsFillerAPI.ExcelWorker
 			// Заголовок "2. Внутренние совместители:"
 			var internalStaffFirstRow = sheet.CreateRow(rowNumber);
 			internalStaffFirstRow.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldStyle).SetCellValue("2. Внутренние совместители:");
-			internalStaffFirstRow.CreateCell(1, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(2, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(3, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(4, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(5, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(6, CellType.String).SetStyle(tableColumnsBoldStyle);
+			internalStaffFirstRow.CreateCell(1, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			internalStaffFirstRow.CreateCell(2, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			internalStaffFirstRow.CreateCell(3, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			internalStaffFirstRow.CreateCell(4, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			internalStaffFirstRow.CreateCell(5, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			internalStaffFirstRow.CreateCell(6, CellType.Blank).SetStyle(tableColumnsBoldStyle);
 
 			rowNumber++;
 			foreach (var internalStaffRow in inputData.InternalStaff)
@@ -114,24 +109,24 @@ namespace DocumentsFillerAPI.ExcelWorker
 
 			// Заголовок "3. Внешние совместители:"
 			var externalStaffFirstRow = sheet.CreateRow(rowNumber);
-			externalStaffFirstRow.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldStyle).SetCellValue("3. Внешние совместители:");
-			externalStaffFirstRow.CreateCell(1, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(2, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(3, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(4, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(5, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(6, CellType.String).SetStyle(tableColumnsBoldStyle);
+			externalStaffFirstRow.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldStyle).SetCellValue("3. Внешние совместители");
+			externalStaffFirstRow.CreateCell(1, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffFirstRow.CreateCell(2, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffFirstRow.CreateCell(3, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffFirstRow.CreateCell(4, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffFirstRow.CreateCell(5, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffFirstRow.CreateCell(6, CellType.Blank).SetStyle(tableColumnsBoldStyle);
 			
 			// Строка с "(представители работодателей):"
 			rowNumber++;
 			var externalStaffSecondRow = sheet.CreateRow(rowNumber);
-			externalStaffSecondRow.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldNotWrapStyle).SetCellValue("(представители работодателей):");
-			externalStaffSecondRow.CreateCell(1, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(2, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(3, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(4, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(5, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(6, CellType.String).SetStyle(tableColumnsBoldStyle);
+			externalStaffSecondRow.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldStyle).SetCellValue("(представители работодателей):");
+			externalStaffSecondRow.CreateCell(1, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffSecondRow.CreateCell(2, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffSecondRow.CreateCell(3, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffSecondRow.CreateCell(4, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffSecondRow.CreateCell(5, CellType.Blank).SetStyle(tableColumnsBoldStyle);
+			externalStaffSecondRow.CreateCell(6, CellType.Blank).SetStyle(tableColumnsBoldStyle);
 			
 			rowNumber++;
 			foreach (var externalStaffRow in inputData.ExternalStaff)
@@ -141,143 +136,55 @@ namespace DocumentsFillerAPI.ExcelWorker
 				rowNumber++;
 			}
 
-			return xssfWorkbook;
-		}
-
-		public XSSFWorkbook GenerateStaffingTemplate(StaffingTemplateInputData inputData)
-		{
-			XSSFWorkbook xssfWorkbook = new XSSFWorkbook();
-			
-			// Создаем стили как в исходном файле
-			var firstHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, offBorder: true, textWrap: false);
-			var tableHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default);
-			var tableColumnsBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center);
-			var tableColumnsNotBoldStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small);
-			var tableColumnsBoldNotWrapStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, textWrap: false, horizontalAligment: HorizontalAlignment.Center);
-
-			var sheet = xssfWorkbook.CreateSheet();
-
-			// Устанавливаем ширины колонок как в исходном файле (в единицах 1/256 символа)
-			// Эти значения были получены из анализа исходного файла
-			sheet.SetColumnWidth(0, (int)(33.7 * 256));  // ~8627
-			sheet.SetColumnWidth(1, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(2, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(3, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(4, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(5, (int)(9.43 * 256));  // ~2414
-			sheet.SetColumnWidth(6, (int)(9.43 * 256));  // ~2414
-
-			// Добавляем объединенные области как в исходном файле
-			sheet.AddMergedRegion(new NPOI.SS.Util.CellRangeAddress(2, 2, 1, 6));
-			sheet.AddMergedRegion(new NPOI.SS.Util.CellRangeAddress(4, 5, 0, 0));
-			sheet.AddMergedRegion(new NPOI.SS.Util.CellRangeAddress(4, 4, 1, 6));
-
-			// Строка 0 - пустая строка с высотой
-			var row0 = sheet.CreateRow(0);
-			row0.Height = 675; // Высота в единицах 1/20 точки
-
-			// Строка 1 - заголовок "Штатное расписание ППС кафедры" и "на год уч.год"
-			var row1 = sheet.CreateRow(1);
-			row1.CreateCell(1).SetCellValue("Штатное расписание ППС кафедры").SetStyle(firstHeaderStyle);
-			row1.CreateCell(5).SetCellValue($"на {inputData.FirstAcademicYear}/{inputData.SecondAcademicYear} уч.год").SetStyle(firstHeaderStyle);
-
-			// Строка 2 - объединенная ячейка с названием кафедры
-			var row2 = sheet.CreateRow(2);
-			row2.CreateCell(1).SetCellValue(inputData.DepartmentName).SetStyle(firstHeaderStyle);
-
-			// Строка 3 - пустая строка с высотой
-			var row3 = sheet.CreateRow(3);
-			row3.Height = 1185; // Высота в единицах 1/20 точки
-
-			// Строка 4 - заголовки таблицы: "ФИО" и "Должность"
-			var row4 = sheet.CreateRow(4);
-			row4.CreateCell(0, CellType.String).SetStyle(tableHeaderStyle).SetCellValue("ФИО");
-			row4.CreateCell(1, CellType.String).SetStyle(tableHeaderStyle).SetCellValue("Должность");
-			row4.CreateCell(2, CellType.String).SetStyle(tableHeaderStyle);
-			row4.CreateCell(3, CellType.String).SetStyle(tableHeaderStyle);
-			row4.CreateCell(4, CellType.String).SetStyle(tableHeaderStyle);
-			row4.CreateCell(5, CellType.String).SetStyle(tableHeaderStyle);
-			row4.CreateCell(6, CellType.String).SetStyle(tableHeaderStyle);
-
-			// Строка 5 - названия должностей
-			var row5 = sheet.CreateRow(5);
-			row5.CreateCell(0).SetStyle(tableHeaderStyle);
-			row5.CreateCell(1, CellType.String).SetStyle(tableHeaderStyle).SetCellValue(academicTitles[0]);
-			row5.CreateCell(2, CellType.String).SetStyle(tableHeaderStyle).SetCellValue(academicTitles[1]);
-			row5.CreateCell(3, CellType.String).SetStyle(tableHeaderStyle).SetCellValue(academicTitles[2]);
-			row5.CreateCell(4, CellType.String).SetStyle(tableHeaderStyle).SetCellValue(academicTitles[3]);
-			row5.CreateCell(5, CellType.String).SetStyle(tableHeaderStyle).SetCellValue(academicTitles[4]);
-			row5.CreateCell(6, CellType.String).SetStyle(tableHeaderStyle).SetCellValue(academicTitles[5]);
-
-			// Строка 6 - "1. Основной штат"
-			var row6 = sheet.CreateRow(6);
-			row6.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldStyle).SetCellValue("1. Основной штат");
-			row6.CreateCell(1, CellType.String).SetStyle(tableColumnsBoldStyle);
-			row6.CreateCell(2, CellType.String).SetStyle(tableColumnsBoldStyle);
-			row6.CreateCell(3, CellType.String).SetStyle(tableColumnsBoldStyle);
-			row6.CreateCell(4, CellType.String).SetStyle(tableColumnsBoldStyle);
-			row6.CreateCell(5, CellType.String).SetStyle(tableColumnsBoldStyle);
-			row6.CreateCell(6, CellType.String).SetStyle(tableColumnsBoldStyle);
-
-			// Заполняем основной штат
-			int rowNumber = 7;
-			foreach (var mainStaffRow in inputData.MainStaff)
-			{
-				var currentRow = sheet.CreateRow(rowNumber);
-				FillStaffForStaffingTemplate(currentRow, mainStaffRow, tableColumnsNotBoldStyle);
-				rowNumber++;
-			}
-
-			// Заголовок "2. Внутренние совместители:"
-			var internalStaffFirstRow = sheet.CreateRow(rowNumber);
-			internalStaffFirstRow.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldStyle).SetCellValue("2. Внутренние совместители:");
-			internalStaffFirstRow.CreateCell(1, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(2, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(3, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(4, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(5, CellType.String).SetStyle(tableColumnsBoldStyle);
-			internalStaffFirstRow.CreateCell(6, CellType.String).SetStyle(tableColumnsBoldStyle);
+			var resultsRow = sheet.CreateRow(rowNumber);
+			resultsRow.Height = 402;
+			resultsRow.CreateCell(0, CellType.String).SetCellValue("ИТОГО:").SetStyle(tableColumnsBoldStyle);
+			resultsRow.CreateCell(1, CellType.Formula).SetCellFormula($"SUM(B8:B{rowNumber})").SetStyle(tableColumnsNotBoldStyle);
+			resultsRow.CreateCell(2, CellType.Formula).SetCellFormula($"SUM(C8:C{rowNumber})").SetStyle(tableColumnsNotBoldStyle);
+			resultsRow.CreateCell(3, CellType.Formula).SetCellFormula($"SUM(D8:D{rowNumber})").SetStyle(tableColumnsNotBoldStyle);
+			resultsRow.CreateCell(4, CellType.Formula).SetCellFormula($"SUM(E8:E{rowNumber})").SetStyle(tableColumnsNotBoldStyle);
+			resultsRow.CreateCell(5, CellType.Formula).SetCellFormula($"SUM(F8:F{rowNumber})").SetStyle(tableColumnsNotBoldStyle);
+			resultsRow.CreateCell(6, CellType.Formula).SetCellFormula($"SUM(G8:G{rowNumber})").SetStyle(tableColumnsNotBoldStyle);
 
 			rowNumber++;
-			foreach (var internalStaffRow in inputData.InternalStaff)
-			{
-				var currentRow = sheet.CreateRow(rowNumber);
-				FillStaffForStaffingTemplate(currentRow, internalStaffRow, tableColumnsNotBoldStyle);
-				rowNumber++;
-			}
+			rowNumber++;
+			sheet.CreateRow(rowNumber).CreateCell(3, CellType.String).SetCellValue("Принято на заседании кафедры").SetStyle(footerStyle);
+			rowNumber++;
+			sheet.CreateRow(rowNumber).CreateCell(3, CellType.String).SetCellValue($"Протокол №{inputData.ProtocolNumber}  от «{inputData.ProtocolDate.Day}» {inputData.ProtocolDate.GetDeclinationsOfMonth()} {inputData.ProtocolDate.Year} г.").SetStyle(footerStyle);
 
-			// Заголовок "3. Внешние совместители:"
-			var externalStaffFirstRow = sheet.CreateRow(rowNumber);
-			externalStaffFirstRow.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldStyle).SetCellValue("3. Внешние совместители:");
-			externalStaffFirstRow.CreateCell(1, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(2, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(3, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(4, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(5, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffFirstRow.CreateCell(6, CellType.String).SetStyle(tableColumnsBoldStyle);
-			
-			// Строка с "(представители работодателей):"
 			rowNumber++;
-			var externalStaffSecondRow = sheet.CreateRow(rowNumber);
-			externalStaffSecondRow.CreateCell(0, CellType.String).SetStyle(tableColumnsBoldNotWrapStyle).SetCellValue("(представители работодателей):");
-			externalStaffSecondRow.CreateCell(1, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(2, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(3, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(4, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(5, CellType.String).SetStyle(tableColumnsBoldStyle);
-			externalStaffSecondRow.CreateCell(6, CellType.String).SetStyle(tableColumnsBoldStyle);
+			sheet.CreateRow(rowNumber).Height = 540;
+
+			rowNumber++;
+			var secondFooterRow = sheet.CreateRow(rowNumber);
+			secondFooterRow.CreateCell(0, CellType.String).SetCellValue("и.о. зав.кафедрой").SetStyle(footerStyle);
+			secondFooterRow.CreateCell(3, CellType.String).SetCellValue(inputData.HeadDepartment).SetStyle(footerStyle);
 			
 			rowNumber++;
-			foreach (var externalStaffRow in inputData.ExternalStaff)
-			{
-				var currentRow = sheet.CreateRow(rowNumber);
-				FillStaffForStaffingTemplate(currentRow, externalStaffRow, tableColumnsNotBoldStyle);
-				rowNumber++;
-			}
+			sheet.CreateRow(rowNumber).Height = 180;
+
+			rowNumber++;
+			var thirdRowFooterRow = sheet.CreateRow(rowNumber);
+			thirdRowFooterRow.CreateCell(0, CellType.String).SetCellValue("СОГЛАСОВАНО:").SetStyle(footerStyle);
+
+			rowNumber++;
+			var fourthRowFooterRow = sheet.CreateRow(rowNumber);
+			fourthRowFooterRow.CreateCell(0, CellType.String).SetCellValue("Директор:").SetStyle(footerStyle);
+			fourthRowFooterRow.CreateCell(3, CellType.String).SetCellValue("В.А. Шульцев").SetStyle(footerStyle);
+
+			rowNumber+=2;
+			var fifthRowFooterRow = sheet.CreateRow(rowNumber);
+			fifthRowFooterRow.CreateCell(0, CellType.String).SetCellValue("Зам.начальника УОП:").SetStyle(footerStyle);
+			fifthRowFooterRow.CreateCell(3, CellType.String).SetCellValue("С.В. Фокеева").SetStyle(footerStyle);
+
+			rowNumber++;
+			var sixthRowFooterRow = sheet.CreateRow(rowNumber);
+			sixthRowFooterRow.Height = 525;
+			sixthRowFooterRow.CreateCell(0, CellType.String).SetCellValue("\"_____\"_____________ 2025 г.").SetStyle(footerStyle);
 
 			return xssfWorkbook;
 		}
-
+		TO LEFT, ADD FIO WITH VALUE AND UPDATE BECAUSE ADD HEADDEPARTMENT
 		private void FillStaffDataInTemplate1(ISheet sheet, XSSFWorkbook workbook, StaffingTemplateInputData inputData)
 		{
 			// Находим строки для заполнения данных сотрудников
@@ -388,6 +295,10 @@ namespace DocumentsFillerAPI.ExcelWorker
 			public int SecondAcademicYear { get; init; }
 			public int ProtocolNumber { get; init; }
 			public DateTime ProtocolDate { get; init; }
+			/// <summary>
+			/// Зав кафедры
+			/// </summary>
+			public string HeadDepartment { get; init; }
 		}
 
 		public record struct StaffingTemplateRow
@@ -403,14 +314,14 @@ namespace DocumentsFillerAPI.ExcelWorker
 			XSSFWorkbook xssfWorkbook = new XSSFWorkbook();
 			var headerStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, textWrap: false, horizontalAligment: HorizontalAlignment.Left);
 			var headerBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, offBorder: true);
-			var textStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Distributed, isCenterVerticalAlignment: false);
-			var textStyle2 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Justify, isCenterVerticalAlignment: true);
-			var tableHeaderStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center, isCenterVerticalAlignment: true);
-			var tableHeaderVerySmallStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.VerySmall, horizontalAligment: HorizontalAlignment.Center, isCenterVerticalAlignment: true);
-			var tableHeaderBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center, isCenterVerticalAlignment: true);
-			var tableHeaderSmallBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.VerySmall, horizontalAligment: HorizontalAlignment.Center, isCenterVerticalAlignment: true);
-			var tableHeaderDefaultStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Center, isCenterVerticalAlignment: true);
-			var tableHeaderBoldFIOStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Left, isCenterVerticalAlignment: true);
+			var textStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Distributed, verticalAligment: VerticalAlignment.Justify);
+			var textStyle2 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Justify, verticalAligment: VerticalAlignment.Justify);
+			var tableHeaderStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
+			var tableHeaderVerySmallStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.VerySmall, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
+			var tableHeaderBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
+			var tableHeaderSmallBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.VerySmall, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
+			var tableHeaderDefaultStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
+			var tableHeaderBoldFIOStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.Justify);
 
 			var sheet = xssfWorkbook.CreateSheet();
 			sheet.AutoSizeColumn(0);
@@ -592,8 +503,8 @@ namespace DocumentsFillerAPI.ExcelWorker
 			sixteenthRow.CreateCell(7).SetStyle(tableHeaderBoldStyle);
 			//fifteenthRow.CreateCell(7).SetStyle(tableHeaderBoldStyle);
 
-			var resultFirstStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, horizontalAligment: HorizontalAlignment.Center, isCenterVerticalAlignment: true);
-			var resultSecondStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center, isCenterVerticalAlignment: true);
+			var resultFirstStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, horizontalAligment: HorizontalAlignment.Center);
+			var resultSecondStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center);
 
 			var seventeenthRow = sheet.CreateRow(++rowNumber);
 			seventeenthRow.CreateCell(0).SetStyle(tableHeaderBoldStyle);

@@ -35,6 +35,9 @@ namespace TestProject
 				MainStaff = new(),
 				InternalStaff = new(),
 				ExternalStaff = new(),
+				ProtocolNumber = 1,
+				ProtocolDate = DateTime.Now,
+				HeadDepartment = "Ы.Э. жћьсрыўъ"
 			};
 
 			var workBook = new ExcelFilesGenerator().GenerateStaffingTemplate(testInfo);

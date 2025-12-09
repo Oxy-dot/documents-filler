@@ -24,11 +24,11 @@ namespace DocumentsFillerAPI.ExcelWorker
 
 		public static string CustomTrim(this string text) => text.Trim().Replace("\r", "").Replace("\n", "").Replace(" ", "").ToLower();
 
-		public static ICellStyle GenerateDefaultStyle(this IWorkbook workbook, bool isBold, FontHeight fontHeight, bool offBorder = false, bool textWrap = true, HorizontalAlignment horizontalAligment = HorizontalAlignment.Center, bool isCenterVerticalAlignment = true)
+		public static ICellStyle GenerateDefaultStyle(this IWorkbook workbook, bool isBold, FontHeight fontHeight, bool offBorder = false, bool textWrap = true, HorizontalAlignment horizontalAligment = HorizontalAlignment.Center, VerticalAlignment verticalAligment = VerticalAlignment.Center)
 		{
 			var newStyle = workbook.CreateCellStyle();
 			newStyle.Alignment = horizontalAligment;
-			newStyle.VerticalAlignment = isCenterVerticalAlignment ? VerticalAlignment.Center : VerticalAlignment.Justify;
+			newStyle.VerticalAlignment = verticalAligment;
 			newStyle.WrapText = textWrap;
 			if (!offBorder)
 			{
@@ -62,6 +62,39 @@ namespace DocumentsFillerAPI.ExcelWorker
 			cell.CellStyle.BorderTop = BorderStyle.Medium;
 			cell.CellStyle.BorderBottom = BorderStyle.Medium;
 			return cell;
+		}
+
+		public static string GetDeclinationsOfMonth(this DateTime date)
+		{
+			switch (date.Month)
+			{
+				case 1:
+					return "января";
+				case 2:
+					return "февраля";
+				case 3:
+					return "марта";
+				case 4:
+					return "апреля";
+				case 5:
+					return "мая";
+				case 6:
+					return "июня";
+				case 7:
+					return "июля";
+				case 8:
+					return "августа";
+				case 9:
+					return "сентября";
+				case 10:
+					return "октября";
+				case 11:
+					return "ноября";
+				case 12:
+					return "декабря";
+				default:
+					return string.Empty;
+			}
 		}
 
 		public enum FontHeight
