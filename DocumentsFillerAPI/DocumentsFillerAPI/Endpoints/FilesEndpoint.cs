@@ -148,6 +148,7 @@ namespace DocumentsFillerAPI.Endpoints
 				string fileName = (string)jBody["fileName"]!;
 				var data = new ExcelFilesGenerator.StaffingTemplateInputData()
 				{
+					HeadDepartment = (string)jBody["headDepartment"]!,
 					DepartmentName = (string)jBody["departmentName"]!,
 					FirstAcademicYear = (int)jBody["firstAcademicYear"]!,
 					SecondAcademicYear = (int)jBody["secondAcademicYear"]!,
