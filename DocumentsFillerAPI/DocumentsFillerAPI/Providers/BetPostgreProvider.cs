@@ -132,7 +132,7 @@ namespace DocumentsFillerAPI.Providers
 
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count == 0 ? "Success" : "Success with errors",
+					Message = results.Count == 0 ? "Успешно" : "Успешно с ошибками",
 					IsSuccess = results.Count == 0,
 				};
 
@@ -195,6 +195,54 @@ namespace DocumentsFillerAPI.Providers
 			catch (Exception ex)
 			{
 				return (new ResultMessage() { IsSuccess = false, Message = ex.Message }, new List<BetStruct>());
+			}
+		}
+
+		public async Task<(ResultMessage, BetStruct?)> Get(Guid teacherID, Guid departmentID, bool isExcessive)
+		{
+			try
+			{
+				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+				//SELECT *, ROW_NUMBER() OVER (ORDER BY bet_id ASC, is_deleted DESC) AS row_id FROM betv2
+
+				string sql =
+					$@"
+					SELECT id,
+						   bet,
+						   hours_amount,
+						   teacher_id,
+						   department_id,
+						   is_excessive
+					FROM public.bet
+					WHERE teacher_id = '{teacherID}' AND
+						  department_id = '{departmentID}' AND
+						  is_excessive = '{isExcessive}' AND
+						  is_deleted = False";
+
+				List<BetStruct> results = new List<BetStruct>();
+
+				await using (var cmd = dataSource.CreateCommand(sql))
+				{
+					var reader = cmd.ExecuteReader();
+					while (reader.Read())
+					{
+						results.Add(new BetStruct
+						{
+							ID = reader.GetGuid(0),
+							BetAmount = reader.GetDouble(1),
+							HoursAmount = reader.GetInt32(2),
+							TeacherID = reader.IsDBNull(3) ? Guid.Empty : reader.GetGuid(3),
+							DepartmentID = reader.IsDBNull(4) ? Guid.Empty : reader.GetGuid(4),
+							IsExcessive = reader.IsDBNull(5) ? false : reader.GetBoolean(5),
+						});
+					}
+				}
+
+				return (new ResultMessage() { IsSuccess = true, Message = "Success" }, results.First());
+			}
+			catch (Exception ex)
+			{
+				return (new ResultMessage() { IsSuccess = false, Message = ex.Message }, default);
 			}
 		}
 

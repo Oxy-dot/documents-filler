@@ -254,6 +254,47 @@ namespace DocumentsFillerAPI.Providers
 			}
 		}
 
+		public async Task<(ResultMessage, DepartmentStruct?)> Get(string name)
+		{
+			try
+			{
+				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+				//SELECT *, ROW_NUMBER() OVER (ORDER BY bet_id ASC, is_deleted DESC) AS row_id FROM betv2
+
+				string sql =
+					$@"
+					SELECT id,
+						   name,
+						   full_name
+					FROM public.department
+					WHERE (full_name = '{name}' OR
+						  name = '{name}') AND
+						  is_deleted = False";
+
+				List<DepartmentStruct> results = new List<DepartmentStruct>();
+
+				await using (var cmd = dataSource.CreateCommand(sql))
+				{
+					var reader = cmd.ExecuteReader();
+					while (reader.Read())
+					{
+						results.Add(new DepartmentStruct
+						{
+							ID = reader.GetGuid(0),
+							Name = reader.GetString(1),
+							FullName = reader.IsDBNull(2) ? "" : reader.GetString(2),
+						});
+					}
+				}
+
+				return (new ResultMessage() { IsSuccess = true, Message = "Success" }, results.First());
+			}
+			catch (Exception ex)
+			{
+				return (new ResultMessage() { IsSuccess = false, Message = ex.Message }, default);
+			}
+		}
+
 		public record UpdateDepartmentStruct
 		{
 			public DepartmentStruct Department { get; init; }

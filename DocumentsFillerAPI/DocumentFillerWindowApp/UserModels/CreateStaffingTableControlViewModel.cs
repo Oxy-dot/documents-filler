@@ -179,26 +179,26 @@ namespace DocumentFillerWindowApp.UserModels
 
 				var data = new FilesAPI.StaffingTemplateData()
 				{
-					DepartmentName = _selectedDepartment.Name,
+					DepartmentName = _selectedDepartment.FullName,
 					FirstAcademicYear = firstYear,
 					SecondAcademicYear = secondYear,
 					ProtocolDate = _protocolDate,
 					ProtocolNumber = protocolNumber,
 					MainStaff = MainStaff.Select(a => new FilesAPI.StaffingTemplateRowData
 					{
-						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
+						FullName = $"{a.SecondName} {a.FirstName.First()}. {a.Patronymic.First()}.",
 						AcademicTitle = a.AcademicTitle.Name,
 						Bet = 0, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
 					ExternalStaff = ExternalStaff.Select(a => new FilesAPI.StaffingTemplateRowData
 					{
-						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
+						FullName = $"{a.SecondName} {a.FirstName.First()}. {a.Patronymic.First()}.",
 						AcademicTitle = a.AcademicTitle.Name,
 						Bet = 0, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),
 					InternalStaff = InternallStaff.Select(a => new FilesAPI.StaffingTemplateRowData
 					{
-						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
+						FullName = $"{a.SecondName} {a.FirstName.First()}. {a.Patronymic.First()}.",
 						AcademicTitle = a.AcademicTitle.Name,
 						Bet = 0, // Bet теперь получается отдельно через BetsAPI по TeacherID
 					}).ToList(),

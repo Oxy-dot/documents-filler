@@ -165,7 +165,7 @@ namespace DocumentsFillerAPI.Endpoints
 				if (teachersInfoToInsert.Count == 0)
 					throw new Exception("Teachers are empty");
 
-				var currentTeachers = (await _provider.FullList(0, 0)).Teachers.Select(a => $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}").ToList();
+				var currentTeachers = (await _provider.FullList(0, 0)).Teachers.Select(a => $"{a.SecondName} {a.FirstName.First()}.{(string.IsNullOrEmpty(a.Patronymic) ? "" :  (a.Patronymic.First() + "."))}").ToList();
 
 				var teachersNamesToInsert = teachersInfoToInsert.Select(a => a.FullName).Except(currentTeachers).ToList();
 				var teachersBetsToInsert = (from teacherInfo in teachersInfoToInsert
@@ -173,7 +173,7 @@ namespace DocumentsFillerAPI.Endpoints
 											select teacherInfo).ToList();
 
 				var teachersBetsToUpdate = (from teacherInfo in teachersInfoToInsert
-											join teacherToUpdateName in teachersNamesToInsert.Intersect(currentTeachers) on teacherInfo.FullName equals teacherToUpdateName
+											join teacherToUpdateName in currentTeachers.Except(teachersNamesToInsert) on teacherInfo.FullName equals teacherToUpdateName
 											select teacherInfo).ToList();
 
 				//ResultMessage? mainBetInsertResult = default;
@@ -223,7 +223,7 @@ namespace DocumentsFillerAPI.Endpoints
 					var toUpdate = new List<BetStruct>();
 					foreach (var mainBet in mainBetsToUpdate)
 					{
-						if (mainBet.MainBetHours == null || mainBet.MainBet != null)
+						if (mainBet.MainBetHours == null || mainBet.MainBet == null)
 							continue;
 
 						var teacherFindResult = await _provider.FindTeacherByShortName(mainBet.FullName);
@@ -234,6 +234,7 @@ namespace DocumentsFillerAPI.Endpoints
 								DepartmentID = departmentID,
 								BetAmount = mainBet.MainBet!.Value,
 								HoursAmount = mainBet.MainBetHours.Value,
+								TeacherID = teacherFindResult.TeacherID,
 								IsExcessive = false
 							});
 						}
@@ -254,7 +255,7 @@ namespace DocumentsFillerAPI.Endpoints
 					var toInsert = new List<BetStruct>();
 					foreach (var mainBet in mainBetsToInsert)
 					{
-						if (mainBet.MainBetHours == null || mainBet.MainBet != null)
+						if (mainBet.MainBetHours == null || mainBet.MainBet == null)
 							continue;
 
 						var teacherFindResult = await _provider.FindTeacherByShortName(mainBet.FullName);
@@ -265,6 +266,7 @@ namespace DocumentsFillerAPI.Endpoints
 								DepartmentID = departmentID,
 								BetAmount = mainBet.MainBet!.Value,
 								HoursAmount = mainBet.MainBetHours.Value,
+								TeacherID = teacherFindResult.TeacherID,
 								IsExcessive = false
 							});
 						}
@@ -283,7 +285,7 @@ namespace DocumentsFillerAPI.Endpoints
 					var toUpdate = new List<BetStruct>();
 					foreach (var excessiveBet in excessiveBetsToUpdate)
 					{
-						if (excessiveBet.ExcessiveBetHours == null || excessiveBet.ExcessiveBet != null)
+						if (excessiveBet.ExcessiveBetHours == null || excessiveBet.ExcessiveBet == null)
 							continue;
 
 						var teacherFindResult = await _provider.FindTeacherByShortName(excessiveBet.FullName);
@@ -294,6 +296,7 @@ namespace DocumentsFillerAPI.Endpoints
 								DepartmentID = departmentID,
 								BetAmount = excessiveBet.ExcessiveBet!.Value,
 								HoursAmount = excessiveBet.ExcessiveBetHours!.Value,
+								TeacherID = teacherFindResult.TeacherID,
 								IsExcessive = true
 							});
 						}
@@ -314,7 +317,7 @@ namespace DocumentsFillerAPI.Endpoints
 					var toInsert = new List<BetStruct>();
 					foreach (var excessiveBet in excessiveBetsToInsert)
 					{
-						if (excessiveBet.ExcessiveBetHours == null || excessiveBet.ExcessiveBet != null)
+						if (excessiveBet.ExcessiveBetHours == null || excessiveBet.ExcessiveBet == null)
 							continue;
 
 						var teacherFindResult = await _provider.FindTeacherByShortName(excessiveBet.FullName);
@@ -325,6 +328,7 @@ namespace DocumentsFillerAPI.Endpoints
 								DepartmentID = departmentID,
 								BetAmount = excessiveBet.ExcessiveBet!.Value,
 								HoursAmount = excessiveBet.ExcessiveBetHours!.Value,
+								TeacherID = teacherFindResult.TeacherID,
 								IsExcessive = true
 							});
 						}

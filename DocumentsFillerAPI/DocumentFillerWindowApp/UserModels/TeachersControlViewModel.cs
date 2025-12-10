@@ -276,10 +276,17 @@ namespace DocumentFillerWindowApp.UserModels
 
 		public override bool Equals(object? obj)
 		{
-			if (obj == null)
-				return false;
+			try
+			{
+				if (obj == null)
+					return false;
 
-			return ((TeacherRecord)obj)!.ID == ID;
+				return ((TeacherRecord)obj)!.ID == ID;
+			}
+			catch (Exception)
+			{
+				return false;
+			}
 		}
 
 		public override int GetHashCode()

@@ -53,7 +53,7 @@ namespace DocumentFillerWindowApp.UserControls
 			// Разрешаем только цифры и ограничиваем до 2 символов
 			Regex regex = new Regex("[^0-9]+");
 			TextBox textBox = sender as TextBox;
-			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 2);
+			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 4);
 		}
 
 		private void EndYearNumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -61,7 +61,7 @@ namespace DocumentFillerWindowApp.UserControls
 			// Разрешаем только цифры и ограничиваем до 2 символов
 			Regex regex = new Regex("[^0-9]+");
 			TextBox textBox = sender as TextBox;
-			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 2);
+			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 4);
 		}
 
 		private void NumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

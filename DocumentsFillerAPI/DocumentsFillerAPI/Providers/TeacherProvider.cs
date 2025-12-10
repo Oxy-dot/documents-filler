@@ -238,11 +238,23 @@ namespace DocumentsFillerAPI.Providers
 			try
 			{
 				var splittedShortName = shortName.Split(' ');
-				string secondName = splittedShortName[0];
+				string secondName = string.Empty;
+				string firstNameLetter = string.Empty;
+				string patronymicLetter = string.Empty;
+				if (splittedShortName.Length == 3)
+				{
+					secondName = splittedShortName[0];
+					firstNameLetter = splittedShortName[1].First().ToString();
+					patronymicLetter = splittedShortName[2].First().ToString();
+				}
+				else 
+				{
+					secondName = splittedShortName[0];
 
-				var firstNameWithPatronymic = splittedShortName[1].Split('.');
-				string firstNameLetter = splittedShortName[0];
-				string patronymicLetter = splittedShortName.Length == 2 ? splittedShortName[1] : "";
+					var firstNameWithPatronymic = splittedShortName[1].Split('.');
+					firstNameLetter = firstNameWithPatronymic[0].First().ToString();
+					patronymicLetter = firstNameWithPatronymic.Length == 2 ? firstNameWithPatronymic[1].First().ToString() : "";
+				}
 
 				await using var dataSource = NpgsqlDataSource.Create(connectionString);
 				//SELECT *, ROW_NUMBER() OVER (ORDER BY bet_id ASC, is_deleted DESC) AS row_id FROM betv2
@@ -259,6 +271,7 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
+					cmd.Parameters.AddWithValue("@secondName", secondName);
 					var reader = cmd.ExecuteReader();
 
 					reader.Read();

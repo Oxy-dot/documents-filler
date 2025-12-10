@@ -14,6 +14,10 @@ namespace DocumentsFillerAPI.Endpoints
 	public class filesController : ControllerBase
 	{
 		private FilePostgreProvider _provider = new FilePostgreProvider();
+		private TeacherProvider _teacherProvider = new TeacherProvider();
+		private BetPostgreProvider _betProvider = new BetPostgreProvider();
+		private DepartmentProvider _departmentProvider = new DepartmentProvider();
+
 		private ExcelFilesGenerator _excelFilesGenerator = new ExcelFilesGenerator();
 		private ExcelFilesParser _excelFilesParser = new ExcelFilesParser();
 
@@ -148,13 +152,13 @@ namespace DocumentsFillerAPI.Endpoints
 				string fileName = (string)jBody["fileName"]!;
 				var data = new ExcelFilesGenerator.StaffingTemplateInputData()
 				{
-					HeadDepartment = (string)jBody["headDepartment"]!,
+					HeadDepartment = "Л.Н. Цымбалюк"/*(string)jBody["headDepartment"]!*/,
 					DepartmentName = (string)jBody["departmentName"]!,
 					FirstAcademicYear = (int)jBody["firstAcademicYear"]!,
 					SecondAcademicYear = (int)jBody["secondAcademicYear"]!,
 					ProtocolNumber = (int)jBody["protocolNumber"]!,
 					ProtocolDate = (DateTime)jBody["protocolDate"]!,
-					MainStaff = jBody["mainStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.StaffingTemplateRow 
+					MainStaff = jBody["mainStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.StaffingTemplateRow
 					{
 						FullName = (string)a["fullName"]!,
 						AcademicTitle = (string)a["academicTitle"]!,
@@ -173,6 +177,68 @@ namespace DocumentsFillerAPI.Endpoints
 						Bet = (double)a["bet"]!
 					}).ToList(),
 				};
+				Guid? departmentID = (await _departmentProvider.Get(data.DepartmentName)).Item2?.ID;
+
+				if (departmentID == null)
+					throw new Exception("Не удалось найти название кафедры");
+
+				foreach (var staff in data.MainStaff)
+				{
+					var teacherID = await _teacherProvider.FindTeacherByShortName(staff.FullName);
+					if (teacherID.TeacherID == Guid.Empty)
+					{
+						staff.Bet = 0;
+						continue;
+					}
+
+					var bet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, false);
+					if (bet.Item2?.BetAmount == null)
+					{
+						staff.Bet = 0;
+						continue;
+					}
+
+					staff.Bet = bet.Item2.BetAmount;
+				}
+
+				foreach (var staff in data.ExternalStaff)
+				{
+					var teacherID = await _teacherProvider.FindTeacherByShortName(staff.FullName);
+					if (teacherID.TeacherID == Guid.Empty)
+					{
+						staff.Bet = 0;
+						continue;
+					}
+
+					var bet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, false);
+					if (bet.Item2?.BetAmount == null)
+					{
+						staff.Bet = 0;
+						continue;
+					}
+
+					staff.Bet = bet.Item2.BetAmount;
+				}
+
+				foreach (var staff in data.InternalStaff)
+				{
+					var teacherID = await _teacherProvider.FindTeacherByShortName(staff.FullName);
+					if (teacherID.TeacherID == Guid.Empty)
+					{
+						staff.Bet = 0;
+						continue;
+					}
+
+					var bet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, false);
+					if (bet.Item2?.BetAmount == null)
+					{
+						staff.Bet = 0;
+						continue;
+					}
+
+					staff.Bet = bet.Item2.BetAmount;
+				}
+
 
 				var stream = new MemoryStream();
 

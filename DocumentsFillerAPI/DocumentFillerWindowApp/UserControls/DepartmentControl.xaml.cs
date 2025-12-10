@@ -35,7 +35,7 @@ namespace DocumentFillerWindowApp.UserControls
 		{
 			if (MainGrid.SelectedItems.Count == 0)
 			{
-				MessageBox.Show("Выбрано 0 записей", "Удаление должностей", MessageBoxButton.OK, MessageBoxImage.Warning);
+				MessageBox.Show("Выбрано 0 записей", "Удаление кафедры", MessageBoxButton.OK, MessageBoxImage.Warning);
 				return;
 			}
 

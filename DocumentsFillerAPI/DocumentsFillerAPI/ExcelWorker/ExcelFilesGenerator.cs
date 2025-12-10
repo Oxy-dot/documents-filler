@@ -14,7 +14,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 			var firstHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, offBorder: true, textWrap: false, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.None);
 			var tableHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small);
 			var tableColumnsBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, horizontalAligment: HorizontalAlignment.Left, textWrap: false, verticalAligment: VerticalAlignment.Bottom);
-			var tableColumnsNotBoldStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small);
+			var tableColumnsNotBoldStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, horizontalAligment: HorizontalAlignment.Right);
 			var tableColumnsBoldNotWrapStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, textWrap: false, horizontalAligment: HorizontalAlignment.Center);
 			var footerStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, textWrap: false, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.Bottom);
 
@@ -184,90 +184,6 @@ namespace DocumentsFillerAPI.ExcelWorker
 
 			return xssfWorkbook;
 		}
-		TO LEFT, ADD FIO WITH VALUE AND UPDATE BECAUSE ADD HEADDEPARTMENT
-		private void FillStaffDataInTemplate1(ISheet sheet, XSSFWorkbook workbook, StaffingTemplateInputData inputData)
-		{
-			// Находим строки для заполнения данных сотрудников
-			int mainStaffStartRow = -1;
-			int internalStaffStartRow = -1;
-			int externalStaffStartRow = -1;
-
-			for (int i = 0; i <= sheet.LastRowNum; i++)
-			{
-				var row = sheet.GetRow(i);
-				if (row == null) continue;
-
-				var firstCell = row.GetCell(0);
-				if (firstCell != null && firstCell.CellType == CellType.String)
-				{
-					var value = firstCell.StringCellValue;
-					if (value.Contains("1. Основной штат") || value.Contains("Основной штат"))
-					{
-						mainStaffStartRow = i + 1;
-					}
-					else if (value.Contains("2. Внутренние совместители") || value.Contains("Внутренние совместители"))
-					{
-						internalStaffStartRow = i + 1;
-					}
-					else if (value.Contains("3. Внешние совместители") || value.Contains("Внешние совместители"))
-					{
-						externalStaffStartRow = i + 1;
-						// Пропускаем следующую строку с "(представители работодателей)"
-						if (i + 2 <= sheet.LastRowNum)
-						{
-							var nextRow = sheet.GetRow(i + 1);
-							if (nextRow != null)
-							{
-								var nextCell = nextRow.GetCell(0);
-								if (nextCell != null && nextCell.StringCellValue.Contains("представители работодателей"))
-								{
-									externalStaffStartRow = i + 2;
-								}
-							}
-						}
-					}
-				}
-			}
-
-			var tableColumnsNotBoldStyle = workbook.GenerateDefaultStyle(false, Helper.FontHeight.Small);
-
-			// Заполняем основной штат
-			if (mainStaffStartRow > 0)
-			{
-				int currentRow = mainStaffStartRow;
-				foreach (var staff in inputData.MainStaff)
-				{
-					var row = sheet.GetRow(currentRow) ?? sheet.CreateRow(currentRow);
-					FillStaffForStaffingTemplate(row, staff, tableColumnsNotBoldStyle);
-					currentRow++;
-				}
-			}
-
-			// Заполняем внутренних совместителей
-			if (internalStaffStartRow > 0)
-			{
-				int currentRow = internalStaffStartRow;
-				foreach (var staff in inputData.InternalStaff)
-				{
-					var row = sheet.GetRow(currentRow) ?? sheet.CreateRow(currentRow);
-					FillStaffForStaffingTemplate(row, staff, tableColumnsNotBoldStyle);
-					currentRow++;
-				}
-			}
-
-			// Заполняем внешних совместителей
-			if (externalStaffStartRow > 0)
-			{
-				int currentRow = externalStaffStartRow;
-				foreach (var staff in inputData.ExternalStaff)
-				{
-					var row = sheet.GetRow(currentRow) ?? sheet.CreateRow(currentRow);
-					FillStaffForStaffingTemplate(row, staff, tableColumnsNotBoldStyle);
-					currentRow++;
-				}
-			}
-		}
-
 		private void FillStaffForStaffingTemplate(IRow row, StaffingTemplateRow data, ICellStyle tableColumnsNotBoldStyle)
 		{
 			row.CreateCell(0, CellType.String).SetStyle(tableColumnsNotBoldStyle).SetCellValue(data.FullName);
@@ -277,7 +193,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 			row.CreateCell(4, CellType.Numeric).SetStyle(tableColumnsNotBoldStyle);
 			row.CreateCell(5, CellType.Numeric).SetStyle(tableColumnsNotBoldStyle);
 			row.CreateCell(6, CellType.Numeric).SetStyle(tableColumnsNotBoldStyle);
-
+			Добавить ещё нолик в конце каждого числа епта
 			for (int i = 0; i < academicTitles.Length; i++)
 			{
 				if (data.AcademicTitle == academicTitles[i])
@@ -301,11 +217,11 @@ namespace DocumentsFillerAPI.ExcelWorker
 			public string HeadDepartment { get; init; }
 		}
 
-		public record struct StaffingTemplateRow
+		public record StaffingTemplateRow
 		{
 			public string FullName { get; init; }
 			public string AcademicTitle { get; init; }
-			public double Bet { get; init; }
+			public double Bet { get; set; }
 		}
 		#endregion
 		#region ServiceMemoTemplate
