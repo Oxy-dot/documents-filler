@@ -273,9 +273,10 @@ namespace DocumentsFillerAPI.Endpoints
 			{
 				var jBody = (await Request.GetBodyJson())["serviceMemoInfo"]!;
 				string fileName = (string)jBody["fileName"]!;
-
 				var data = new ExcelFilesGenerator.ServiceMemoInputData()
 				{
+					DepartmentName = (string)jBody["departmentName"]!,
+					Reserve = (double)jBody["reserve"]!,
 					FirstAcademicYear = (int)jBody["firstAcademicYear"]!,
 					SecondAcademicYear = (int)jBody["secondAcademicYear"]!,
 					StudyPeriodDateStart = (DateTime)jBody["studyPeriodDateStart"]!,
@@ -343,6 +344,167 @@ namespace DocumentsFillerAPI.Endpoints
 						} : null,
 					}).ToList(),
 				};
+
+				Guid? departmentID = (await _departmentProvider.Get(data.DepartmentName)).Item2?.ID;
+
+				if (departmentID == null)
+					throw new Exception("Не удалось найти название кафедры");
+
+				foreach (var staff in data.MainStaff)
+				{
+					var teacherID = await _teacherProvider.FindTeacherByShortName(staff.FullName);
+					if (teacherID.TeacherID == Guid.Empty)
+					{
+						staff.MainBetInfo = null;
+						staff.ExcessiveBetInfo = null;
+						continue;
+					}
+
+					var bet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, false);
+					if (bet.Item2?.BetAmount == null)
+					{
+						staff.MainBetInfo = null;
+					}
+					else
+					{
+						staff.MainBetInfo = new ExcelFilesGenerator.ServiceMemoTemplateBetStruct
+						{
+							Bet = bet.Item2.BetAmount,
+							HoursAmount = bet.Item2.HoursAmount,
+						};
+					}
+
+					var excessiveBet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, true);
+					if (excessiveBet.Item2?.BetAmount == null)
+					{
+						staff.ExcessiveBetInfo = null;
+					}
+					else
+					{
+						staff.ExcessiveBetInfo = new ExcelFilesGenerator.ServiceMemoTemplateBetStruct
+						{
+							Bet = excessiveBet.Item2!.BetAmount,
+							HoursAmount = excessiveBet.Item2!.HoursAmount,
+						};
+					}
+				}
+
+				foreach (var staff in data.HourlyWorkers)
+				{
+					var teacherID = await _teacherProvider.FindTeacherByShortName(staff.FullName);
+					if (teacherID.TeacherID == Guid.Empty)
+					{
+						staff.MainBetInfo = null;
+						staff.ExcessiveBetInfo = null;
+						continue;
+					}
+
+					var bet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, false);
+					if (bet.Item2?.BetAmount == null)
+					{
+						staff.MainBetInfo = null;
+					}
+					else
+					{
+						staff.MainBetInfo = new ExcelFilesGenerator.ServiceMemoTemplateBetStruct
+						{
+							Bet = bet.Item2.BetAmount,
+							HoursAmount = bet.Item2.HoursAmount,
+						};
+					}
+
+					var excessiveBet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, true);
+					if (excessiveBet.Item2?.BetAmount == null)
+					{
+						staff.ExcessiveBetInfo = null;
+					}
+					else
+					{
+						staff.ExcessiveBetInfo = new ExcelFilesGenerator.ServiceMemoTemplateBetStruct
+						{
+							Bet = excessiveBet.Item2!.BetAmount,
+							HoursAmount = excessiveBet.Item2!.HoursAmount,
+						};
+					}
+				}
+
+				foreach (var staff in data.InternalStaff)
+				{
+					var teacherID = await _teacherProvider.FindTeacherByShortName(staff.FullName);
+					if (teacherID.TeacherID == Guid.Empty)
+					{
+						staff.MainBetInfo = null;
+						staff.ExcessiveBetInfo = null;
+						continue;
+					}
+
+					var bet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, false);
+					if (bet.Item2?.BetAmount == null)
+					{
+						staff.MainBetInfo = null;
+					}
+					else
+					{
+						staff.MainBetInfo = new ExcelFilesGenerator.ServiceMemoTemplateBetStruct
+						{
+							Bet = bet.Item2.BetAmount,
+							HoursAmount = bet.Item2.HoursAmount,
+						};
+					}
+
+					var excessiveBet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, true);
+					if (excessiveBet.Item2?.BetAmount == null)
+					{
+						staff.ExcessiveBetInfo = null;
+					}
+					else
+					{
+						staff.ExcessiveBetInfo = new ExcelFilesGenerator.ServiceMemoTemplateBetStruct
+						{
+							Bet = excessiveBet.Item2!.BetAmount,
+							HoursAmount = excessiveBet.Item2!.HoursAmount,
+						};
+					}
+				}
+
+				foreach (var staff in data.ExternalStaff)
+				{
+					var teacherID = await _teacherProvider.FindTeacherByShortName(staff.FullName);
+					if (teacherID.TeacherID == Guid.Empty)
+					{
+						staff.MainBetInfo = null;
+						staff.ExcessiveBetInfo = null;
+						continue;
+					}
+
+					var bet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, false);
+					if (bet.Item2?.BetAmount == null)
+					{
+						staff.MainBetInfo = null;
+					}
+					else
+					{
+						staff.MainBetInfo = new ExcelFilesGenerator.ServiceMemoTemplateBetStruct
+						{
+							Bet = bet.Item2.BetAmount,
+							HoursAmount = bet.Item2.HoursAmount,
+						};
+					}
+
+					var excessiveBet = await _betProvider.Get(teacherID.TeacherID, departmentID.Value, true);
+					if (excessiveBet.Item2?.BetAmount == null)
+					{
+						staff.ExcessiveBetInfo = null;
+					}
+					else
+					{
+						staff.ExcessiveBetInfo = new ExcelFilesGenerator.ServiceMemoTemplateBetStruct
+						{
+							Bet = excessiveBet.Item2!.BetAmount,
+							HoursAmount = excessiveBet.Item2!.HoursAmount,
+						};
+					}
+				}
 
 				var stream = new MemoryStream();
 

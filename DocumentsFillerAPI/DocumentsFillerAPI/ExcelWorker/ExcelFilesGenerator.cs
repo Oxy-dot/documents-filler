@@ -14,10 +14,12 @@ namespace DocumentsFillerAPI.ExcelWorker
 			var firstHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, offBorder: true, textWrap: false, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.None);
 			var tableHeaderStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small);
 			var tableColumnsBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, horizontalAligment: HorizontalAlignment.Left, textWrap: false, verticalAligment: VerticalAlignment.Bottom);
-			var tableColumnsNotBoldStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, horizontalAligment: HorizontalAlignment.Right);
+			var tableColumnsNotBoldStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, horizontalAligment: HorizontalAlignment.Right, verticalAligment: VerticalAlignment.Bottom);
 			var tableColumnsBoldNotWrapStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, textWrap: false, horizontalAligment: HorizontalAlignment.Center);
 			var footerStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, textWrap: false, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.Bottom);
 
+			var numericFormat = xssfWorkbook.CreateDataFormat().GetFormat("0.00");
+			tableColumnsNotBoldStyle.DataFormat = numericFormat;
 			var sheet = xssfWorkbook.CreateSheet();
 
 			sheet.SetColumnWidth(0, 5266);
@@ -193,7 +195,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 			row.CreateCell(4, CellType.Numeric).SetStyle(tableColumnsNotBoldStyle);
 			row.CreateCell(5, CellType.Numeric).SetStyle(tableColumnsNotBoldStyle);
 			row.CreateCell(6, CellType.Numeric).SetStyle(tableColumnsNotBoldStyle);
-			Добавить ещё нолик в конце каждого числа епта
+			//Добавить ещё нолик в конце каждого числа епта
 			for (int i = 0; i < academicTitles.Length; i++)
 			{
 				if (data.AcademicTitle == academicTitles[i])
@@ -231,13 +233,14 @@ namespace DocumentsFillerAPI.ExcelWorker
 			var headerStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, textWrap: false, horizontalAligment: HorizontalAlignment.Left);
 			var headerBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Default, offBorder: true);
 			var textStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Distributed, verticalAligment: VerticalAlignment.Justify);
-			var textStyle2 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Justify, verticalAligment: VerticalAlignment.Justify);
-			var tableHeaderStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
-			var tableHeaderVerySmallStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.VerySmall, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
+			var textStyle2 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Justify, verticalAligment: VerticalAlignment.Center);
+			var tableHeaderStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Center);
+			var tableHeaderVerySmallStyle1 = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.VerySmall, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Center);
 			var tableHeaderBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
-			var tableHeaderSmallBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.VerySmall, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
+			var tableHeaderSmallBoldStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.VerySmall, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Center);
 			var tableHeaderDefaultStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
 			var tableHeaderBoldFIOStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.Justify);
+			var valuesStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, textWrap: false, horizontalAligment: HorizontalAlignment.Left);
 
 			var sheet = xssfWorkbook.CreateSheet();
 			sheet.AutoSizeColumn(0);
@@ -285,7 +288,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 			font1.IsItalic = true;
 			font1.FontHeightInPoints = 12;
 			font1.FontName = "Times New Roman";
-
+			
 			richText1.ApplyFont(87, 89, font1);
 			richText1.ApplyFont(90, richText1.Length - 1, textStyle1.GetFont(xssfWorkbook));
 			richText1.ApplyFont(36, 87, textStyle1.GetFont(xssfWorkbook));
@@ -344,11 +347,11 @@ namespace DocumentsFillerAPI.ExcelWorker
 			foreach (var staff in inputData.MainStaff)
 			{
 				var currentRow = sheet.CreateRow(rowNumber);
-				FillStaffForServiceMemo(currentRow, staff, headerStyle);
+				FillStaffForServiceMemo(currentRow, staff, valuesStyle);
 				rowNumber++;
 			}
 
-			var thirteenthRow = sheet.CreateRow(++rowNumber);
+			var thirteenthRow = sheet.CreateRow(rowNumber);
 			thirteenthRow.CreateCell(0).SetStyle(tableHeaderBoldFIOStyle);
 			thirteenthRow.CreateCell(1).SetStyle(tableHeaderBoldFIOStyle).SetCellValue("2. Внутренние совместители:");
 			thirteenthRow.CreateCell(2).SetStyle(tableHeaderBoldFIOStyle);
@@ -357,17 +360,17 @@ namespace DocumentsFillerAPI.ExcelWorker
 			thirteenthRow.CreateCell(5).SetStyle(tableHeaderBoldFIOStyle);
 			thirteenthRow.CreateCell(6).SetStyle(tableHeaderBoldFIOStyle);
 			thirteenthRow.CreateCell(7).SetStyle(tableHeaderBoldFIOStyle);
-			
 			rowNumber++;
+
 			//int rowNumber = 13;
 			foreach (var staff in inputData.InternalStaff)
 			{
 				var currentRow = sheet.CreateRow(rowNumber);
-				FillStaffForServiceMemo(currentRow, staff, headerStyle);
+				FillStaffForServiceMemo(currentRow, staff, valuesStyle);
 				rowNumber++;
 			}
 
-			var fourteenthRow = sheet.CreateRow(++rowNumber);
+			var fourteenthRow = sheet.CreateRow(rowNumber);
 			fourteenthRow.CreateCell(0).SetStyle(tableHeaderBoldFIOStyle);
 			fourteenthRow.CreateCell(1).SetStyle(tableHeaderBoldFIOStyle).SetCellValue("3. Внешние совместители:");
 			fourteenthRow.CreateCell(2).SetStyle(tableHeaderBoldFIOStyle);
@@ -376,17 +379,17 @@ namespace DocumentsFillerAPI.ExcelWorker
 			fourteenthRow.CreateCell(5).SetStyle(tableHeaderBoldFIOStyle);
 			fourteenthRow.CreateCell(6).SetStyle(tableHeaderBoldFIOStyle);
 			fourteenthRow.CreateCell(7).SetStyle(tableHeaderBoldFIOStyle);
-
 			rowNumber++;
+
 			//int rowNumber = 13;
 			foreach (var staff in inputData.ExternalStaff)
 			{
 				var currentRow = sheet.CreateRow(rowNumber);
-				FillStaffForServiceMemo(currentRow, staff, headerStyle);
+				FillStaffForServiceMemo(currentRow, staff, valuesStyle);
 				rowNumber++;
 			}
 
-			var fifteenthRow = sheet.CreateRow(++rowNumber);
+			var fifteenthRow = sheet.CreateRow(rowNumber);
 			fifteenthRow.CreateCell(0).SetStyle(tableHeaderBoldFIOStyle);
 			fifteenthRow.CreateCell(1).SetStyle(tableHeaderBoldFIOStyle).SetCellValue("4. Почасовики:");
 			fifteenthRow.CreateCell(2).SetStyle(tableHeaderBoldFIOStyle);
@@ -395,20 +398,20 @@ namespace DocumentsFillerAPI.ExcelWorker
 			fifteenthRow.CreateCell(5).SetStyle(tableHeaderBoldFIOStyle);
 			fifteenthRow.CreateCell(6).SetStyle(tableHeaderBoldFIOStyle);
 			fifteenthRow.CreateCell(7).SetStyle(tableHeaderBoldFIOStyle);
-
 			rowNumber++;
+
 			//int rowNumber = 13;
 			foreach (var staff in inputData.HourlyWorkers)
 			{
 				var currentRow = sheet.CreateRow(rowNumber);
-				FillStaffForServiceMemo(currentRow, staff, headerStyle);
+				FillStaffForServiceMemo(currentRow, staff, valuesStyle);
 				rowNumber++;
 			}
 
 			//Используется для формул
 			int lastRowWithData = rowNumber;
 
-			var sixteenthRow = sheet.CreateRow(++rowNumber);
+			var sixteenthRow = sheet.CreateRow(rowNumber);
 			sixteenthRow.CreateCell(0).SetStyle(tableHeaderBoldStyle);
 			sixteenthRow.CreateCell(1).SetStyle(tableHeaderBoldStyle);
 			sixteenthRow.CreateCell(2).SetStyle(tableHeaderBoldStyle);
@@ -429,7 +432,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 			seventeenthRow.CreateCell(3).SetStyle(tableHeaderBoldStyle);
 			seventeenthRow.CreateCell(4).SetStyle(tableHeaderBoldStyle);
 			seventeenthRow.CreateCell(5).SetStyle(resultFirstStyle).SetCellFormula($"G{rowNumber}*750");
-			seventeenthRow.CreateCell(6).SetStyle(resultFirstStyle).SetCellFormula($"13.2-SUM(G14:G{lastRowWithData})");
+			seventeenthRow.CreateCell(6).SetStyle(resultFirstStyle).SetCellFormula($"{inputData.Reserve}-SUM(G14:G{lastRowWithData})");
 			seventeenthRow.CreateCell(7).SetStyle(tableHeaderBoldStyle);
 
 			var eighteenthRow = sheet.CreateRow(++rowNumber);
@@ -450,10 +453,8 @@ namespace DocumentsFillerAPI.ExcelWorker
 			ninteenthRow.CreateCell(4).SetStyle(resultFirstStyle).SetCellFormula($"SUM(E14:E{lastRowWithData})");
 			ninteenthRow.CreateCell(5).SetStyle(resultFirstStyle).SetCellFormula($"SUM(F14:F{lastRowWithData})");
 			ninteenthRow.CreateCell(6).SetStyle(resultFirstStyle).SetCellFormula($"SUM(G14:G{lastRowWithData})");
-			ninteenthRow.CreateCell(7).SetStyle(resultSecondStyle).SetCellFormula($"E{lastRowWithData}+G{lastRowWithData}");
+			ninteenthRow.CreateCell(7).SetStyle(resultSecondStyle).SetCellFormula($"E{rowNumber+1}+G{rowNumber+1}");
 			
-			
-
 			//sixteenthRow.HeightInPoints = 3.75f;
 			return xssfWorkbook;
 		}
@@ -486,10 +487,13 @@ namespace DocumentsFillerAPI.ExcelWorker
 				row.CreateCell(5).SetStyle(tableColumnsNotBoldStyle);
 				row.CreateCell(6).SetStyle(tableColumnsNotBoldStyle);
 			}
+			row.CreateCell(7).SetStyle(tableColumnsNotBoldStyle);
 		}
 
 		public readonly record struct ServiceMemoInputData
 		{
+			public string DepartmentName { get; init; }
+			public double Reserve { get; init; }
 			public int FirstAcademicYear { get; init; }
 			public int SecondAcademicYear { get; init; }
 			public DateTime StudyPeriodDateStart { get; init; }
@@ -502,12 +506,12 @@ namespace DocumentsFillerAPI.ExcelWorker
 			public DateTime ProtocolDateTime { get; init; }
 		}
 
-		public readonly record struct ServiceMemoTemplateRow 
+		public record ServiceMemoTemplateRow 
 		{
 			public string FullName { get; init; }
 			public string AcademicTitle { get; init; }
-			public ServiceMemoTemplateBetStruct? MainBetInfo { get; init; }
-			public ServiceMemoTemplateBetStruct? ExcessiveBetInfo { get; init; }
+			public ServiceMemoTemplateBetStruct? MainBetInfo { get; set; }
+			public ServiceMemoTemplateBetStruct? ExcessiveBetInfo { get; set; }
 		}
 
 		public readonly record struct ServiceMemoTemplateBetStruct

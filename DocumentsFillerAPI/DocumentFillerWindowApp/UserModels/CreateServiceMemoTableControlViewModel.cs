@@ -226,7 +226,7 @@ namespace DocumentFillerWindowApp.UserModels
 					ProtocolDateTime = _protocolDateTime,
 					MainStaff = MainStaff.Select(a => new FilesAPI.ServiceMemoTemplateRowData
 					{
-						FullName = $"{a.SecondName} {a.FirstName.First()} {a.Patronymic.First()}",
+						FullName = $"{a.SecondName} {a.FirstName.First()}. {a.Patronymic.First()}.",
 						AcademicTitle = a.AcademicTitle.Name,
 						MainBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
 						ExcessiveBetInfo = null, // Bet теперь получается отдельно через BetsAPI по TeacherID
