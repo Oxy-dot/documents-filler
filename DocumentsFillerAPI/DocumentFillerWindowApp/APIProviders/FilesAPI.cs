@@ -100,6 +100,8 @@ namespace DocumentFillerWindowApp.APIProviders
 					["serviceMemoInfo"] = new JsonObject()
 					{
 						["fileName"] = fileName,
+						["departmentName"] = data.DepartmentName,
+						["reserve"] = data.Reserve,
 						["firstAcademicYear"] = data.FirstAcademicYear,
 						["secondAcademicYear"] = data.SecondAcademicYear,
 						["studyPeriodDateStart"] = data.StudyPeriodDateStart,
@@ -186,6 +188,8 @@ namespace DocumentFillerWindowApp.APIProviders
 
 		public readonly record struct ServiceMemoTemplateData
 		{
+			public string DepartmentName { get; init; }
+			public double Reserve { get; init; }
 			public int FirstAcademicYear { get; init; }
 			public int SecondAcademicYear { get; init; }
 			public DateTime StudyPeriodDateStart { get; init; }

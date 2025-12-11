@@ -62,7 +62,7 @@ namespace DocumentFillerWindowApp.UserControls
 			// Разрешаем только цифры и ограничиваем до 2 символов
 			Regex regex = new Regex("[^0-9]+");
 			TextBox textBox = sender as TextBox;
-			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 2);
+			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 4);
 		}
 
 		private void EndYearNumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -70,7 +70,7 @@ namespace DocumentFillerWindowApp.UserControls
 			// Разрешаем только цифры и ограничиваем до 2 символов
 			Regex regex = new Regex("[^0-9]+");
 			TextBox textBox = sender as TextBox;
-			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 2);
+			e.Handled = regex.IsMatch(e.Text) || (textBox.Text.Length >= 4);
 		}
 
 		private void NumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -78,6 +78,23 @@ namespace DocumentFillerWindowApp.UserControls
 			// Разрешаем только цифры
 			Regex regex = new Regex("[^0-9]+");
 			e.Handled = regex.IsMatch(e.Text) /*&& _viewModel.EndYearTextBoxText.Length <= 2*/;
+		}
+
+		private void ReserveTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+		{
+			// Разрешаем только цифры и точку/запятую для десятичных чисел
+			TextBox textBox = sender as TextBox;
+			string text = textBox.Text;
+			Regex regex = new Regex("[^0-9.,]+");
+			
+			// Проверяем, что точка или запятая не дублируются
+			if ((e.Text == "." || e.Text == ",") && (text.Contains(".") || text.Contains(",")))
+			{
+				e.Handled = true;
+				return;
+			}
+			
+			e.Handled = regex.IsMatch(e.Text);
 		}
 
 		private async void Button_Click_3(object sender, RoutedEventArgs e)

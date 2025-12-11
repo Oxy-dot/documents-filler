@@ -241,6 +241,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 			var tableHeaderDefaultStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, horizontalAligment: HorizontalAlignment.Center, verticalAligment: VerticalAlignment.Justify);
 			var tableHeaderBoldFIOStyle = xssfWorkbook.GenerateDefaultStyle(true, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.Justify);
 			var valuesStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, textWrap: false, horizontalAligment: HorizontalAlignment.Left);
+			valuesStyle.DataFormat = xssfWorkbook.CreateDataFormat().GetFormat("0.00");
 
 			var sheet = xssfWorkbook.CreateSheet();
 			sheet.AutoSizeColumn(0);
@@ -432,7 +433,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 			seventeenthRow.CreateCell(3).SetStyle(tableHeaderBoldStyle);
 			seventeenthRow.CreateCell(4).SetStyle(tableHeaderBoldStyle);
 			seventeenthRow.CreateCell(5).SetStyle(resultFirstStyle).SetCellFormula($"G{rowNumber}*750");
-			seventeenthRow.CreateCell(6).SetStyle(resultFirstStyle).SetCellFormula($"{inputData.Reserve}-SUM(G14:G{lastRowWithData})");
+			seventeenthRow.CreateCell(6).SetStyle(resultFirstStyle).SetCellFormula($"{inputData.Reserve.ToString()}-СУММ(G14:G{lastRowWithData})");
 			seventeenthRow.CreateCell(7).SetStyle(tableHeaderBoldStyle);
 
 			var eighteenthRow = sheet.CreateRow(++rowNumber);

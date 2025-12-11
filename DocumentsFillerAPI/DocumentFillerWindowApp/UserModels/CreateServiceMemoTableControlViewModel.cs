@@ -28,6 +28,7 @@ namespace DocumentFillerWindowApp.UserModels
 		private DateTime _protocolDateTime;
 		private string _protocolNumberText;
 		private string _fileName = "";
+		private string _reserveText = "";
 
 		public string FileName
 		{
@@ -35,6 +36,16 @@ namespace DocumentFillerWindowApp.UserModels
 			set
 			{
 				_fileName = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public string ReserveText
+		{
+			get => _reserveText;
+			set
+			{
+				_reserveText = value;
 				OnPropertyChanged();
 			}
 		}
@@ -198,6 +209,12 @@ namespace DocumentFillerWindowApp.UserModels
 					return;
 				}
 
+				if (_selectedDepartment == null)
+				{
+					MessageBox.Show("Не выбрана кафедра", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+
 				if (!int.TryParse(StartYearTextBoxText, out int firstYear))
 				{
 					MessageBox.Show("Неверный формат начала учебного года", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -216,8 +233,16 @@ namespace DocumentFillerWindowApp.UserModels
 					return;
 				}
 
+				if (!double.TryParse(_reserveText.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double reserve))
+				{
+					MessageBox.Show("Неверный формат резерва", "Ошибка при генерации файла", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+
 				var data = new FilesAPI.ServiceMemoTemplateData()
 				{
+					DepartmentName = _selectedDepartment.FullName,
+					Reserve = reserve,
 					FirstAcademicYear = firstYear,
 					SecondAcademicYear = secondYear,
 					StudyPeriodDateStart = _studyPeriodDateStart,
