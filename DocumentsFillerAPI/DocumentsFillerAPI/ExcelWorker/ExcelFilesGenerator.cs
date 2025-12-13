@@ -1,5 +1,7 @@
-﻿using NPOI.SS.UserModel;
+﻿using NPOI.OpenXmlFormats.Dml;
+using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using System.Globalization;
 
 namespace DocumentsFillerAPI.ExcelWorker
 {
@@ -244,6 +246,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 			valuesStyle.DataFormat = xssfWorkbook.CreateDataFormat().GetFormat("0.00");
 
 			var sheet = xssfWorkbook.CreateSheet();
+
 			sheet.AutoSizeColumn(0);
 
 			sheet.AddMergedRegion(new NPOI.SS.Util.CellRangeAddress(4, 4, 1, 7));
@@ -425,6 +428,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 
 			var resultFirstStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, horizontalAligment: HorizontalAlignment.Center);
 			var resultSecondStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Center);
+			var resultThirdStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small, horizontalAligment: HorizontalAlignment.Left);
 
 			var seventeenthRow = sheet.CreateRow(++rowNumber);
 			seventeenthRow.CreateCell(0).SetStyle(tableHeaderBoldStyle);
@@ -433,7 +437,7 @@ namespace DocumentsFillerAPI.ExcelWorker
 			seventeenthRow.CreateCell(3).SetStyle(tableHeaderBoldStyle);
 			seventeenthRow.CreateCell(4).SetStyle(tableHeaderBoldStyle);
 			seventeenthRow.CreateCell(5).SetStyle(resultFirstStyle).SetCellFormula($"G{rowNumber}*750");
-			seventeenthRow.CreateCell(6).SetStyle(resultFirstStyle).SetCellFormula($"{inputData.Reserve.ToString()}-СУММ(G14:G{lastRowWithData})");
+			seventeenthRow.CreateCell(6).SetStyle(resultFirstStyle).SetCellFormula($"{inputData.Reserve.ToString(CultureInfo.InvariantCulture).Replace(",", ".")}-SUM(G14:G{lastRowWithData})");
 			seventeenthRow.CreateCell(7).SetStyle(tableHeaderBoldStyle);
 
 			var eighteenthRow = sheet.CreateRow(++rowNumber);
@@ -446,17 +450,89 @@ namespace DocumentsFillerAPI.ExcelWorker
 			eighteenthRow.CreateCell(6).SetStyle(tableHeaderBoldStyle);
 			eighteenthRow.CreateCell(7).SetStyle(tableHeaderBoldStyle);
 
+			resultSecondStyle.DataFormat = xssfWorkbook.CreateDataFormat().GetFormat("0.00");
+
 			var ninteenthRow = sheet.CreateRow(++rowNumber);
 			ninteenthRow.CreateCell(0).SetStyle(tableHeaderBoldStyle);
-			ninteenthRow.CreateCell(1).SetStyle(resultSecondStyle).SetCellValue("ИТОГО:");
+			ninteenthRow.CreateCell(1).SetStyle(resultThirdStyle).SetCellValue("ИТОГО:");
 			ninteenthRow.CreateCell(2).SetStyle(tableHeaderBoldStyle);
 			ninteenthRow.CreateCell(3).SetStyle(resultFirstStyle).SetCellFormula($"SUM(D14:D{lastRowWithData})");
 			ninteenthRow.CreateCell(4).SetStyle(resultFirstStyle).SetCellFormula($"SUM(E14:E{lastRowWithData})");
 			ninteenthRow.CreateCell(5).SetStyle(resultFirstStyle).SetCellFormula($"SUM(F14:F{lastRowWithData})");
 			ninteenthRow.CreateCell(6).SetStyle(resultFirstStyle).SetCellFormula($"SUM(G14:G{lastRowWithData})");
 			ninteenthRow.CreateCell(7).SetStyle(resultSecondStyle).SetCellFormula($"E{rowNumber+1}+G{rowNumber+1}");
-			
-			//sixteenthRow.HeightInPoints = 3.75f;
+
+			int dataEndRowNumber = rowNumber;
+
+			//75
+			//540
+			sheet.CreateRow(++rowNumber).Height = 75;
+
+			rowNumber++;
+			sheet.AddMergedRegion(new NPOI.SS.Util.CellRangeAddress(rowNumber, rowNumber, 0, 7));
+
+			var twentiethRow = sheet.CreateRow(rowNumber);
+			twentiethRow.Height = 540;
+			var infoStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Small, offBorder: true, textWrap: true, horizontalAligment: HorizontalAlignment.Left, verticalAligment: VerticalAlignment.Center);
+			twentiethRow.CreateCell(0).SetStyle(infoStyle).SetCellValue("* – столбец «Доплата» заполняется специалистом ФЭУ (в зависимости от указанной учебной сверхнормативной нагрузки и занимаемой должности)");
+
+			rowNumber++;
+			sheet.AddMergedRegion(new NPOI.SS.Util.CellRangeAddress(rowNumber, rowNumber, 2, 7));
+
+			var footerStyle = xssfWorkbook.GenerateDefaultStyle(false, Helper.FontHeight.Default, offBorder: true, textWrap: false, horizontalAligment: HorizontalAlignment.Left);
+
+			var twentyFirst = sheet.CreateRow(rowNumber);
+			twentyFirst.CreateCell(2).SetStyle(footerStyle).SetCellValue("Принято на заседании УП");
+
+			var twentySecondRow = sheet.CreateRow(++rowNumber);
+			twentySecondRow.Height = 465;
+			twentySecondRow.CreateCell(2).SetStyle(footerStyle).SetCellValue($"Протокол №{inputData.ProtocolNumber} от «{inputData.ProtocolDateTime.Day}» {inputData.ProtocolDateTime.GetDeclinationsOfMonth()} {inputData.ProtocolDateTime.Year}г.");
+
+			var twentyThirdRow = sheet.CreateRow(++rowNumber);
+			twentyThirdRow.CreateCell(1).SetStyle(footerStyle).SetCellValue("Заведующий УП (ОП)");
+			twentyThirdRow.CreateCell(6).SetStyle(footerStyle).SetCellValue("Л.Н. Цымбалюк");
+			rowNumber++;
+			sheet.CreateRow(++rowNumber).CreateCell(1).SetStyle(footerStyle).SetCellValue("Согласовано:");
+
+			var twentyFourthRow = sheet.CreateRow(rowNumber += 2);
+			twentyFourthRow.CreateCell(1).SetStyle(footerStyle).SetCellValue("Замначальника УОП");
+			twentyFourthRow.CreateCell(6).SetStyle(footerStyle).SetCellValue("С.В. Фокеева");
+
+			var twentyFifthRow = sheet.CreateRow(rowNumber += 2);
+			twentyFifthRow.CreateCell(1).SetStyle(footerStyle).SetCellValue("Начальник ФЭУ");
+			twentyFifthRow.CreateCell(6).SetStyle(footerStyle).SetCellValue("Е. Ю. Цветкова");
+
+			//Заполняем всё белым
+
+			int maxRows = sheet.PhysicalNumberOfRows + 30;
+			int maxCols = 100;
+
+			var whiteStyle = xssfWorkbook.CreateCellStyle();
+			whiteStyle.FillForegroundColor = IndexedColors.White.Index;
+			whiteStyle.FillPattern = FillPattern.SolidForeground;
+
+			for (int rowIndex = 0; rowIndex < maxRows; rowIndex++)
+			{
+				IRow row = sheet.GetRow(rowIndex);
+				if (row == null)
+					row = sheet.CreateRow(rowIndex);
+
+				if (rowIndex <= dataEndRowNumber)
+					for (int colIndex = 8; colIndex < maxCols; colIndex++)
+						row.CreateCell(colIndex).CellStyle = whiteStyle;
+				else
+					for (int colIndex = 0; colIndex < maxCols; colIndex++)
+					{
+						var cell = row.GetCell(colIndex);
+						if (cell == null)
+							row.CreateCell(colIndex).CellStyle = whiteStyle;
+						else
+						{
+							cell.CellStyle.FillForegroundColor = IndexedColors.White.Index;
+							cell.CellStyle.FillPattern = FillPattern.SolidForeground;
+						}
+					}
+			}
 			return xssfWorkbook;
 		}
 
