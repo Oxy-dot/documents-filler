@@ -20,11 +20,12 @@
             SelectionUnit="FullRow"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
             VirtualizingPanel.IsVirtualizing="True"
-            Grid.Row="1">
+            Grid.Row="1"
+            IsReadOnly="True">
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding FileName, UpdateSourceTrigger=PropertyChanged}" Header="Название файла"/>
-                <DataGridTextColumn Binding="{Binding CreationDate, UpdateSourceTrigger=PropertyChanged, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" Header="Дата создания"/>
-                <DataGridTextColumn Binding="{Binding FileType, UpdateSourceTrigger=PropertyChanged}" Header="Тип файла"/>
+                <DataGridTextColumn Binding="{Binding FileName}" Header="Название файла"/>
+                <DataGridTextColumn Binding="{Binding CreationDate, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" Header="Дата создания"/>
+                <DataGridTextColumn Binding="{Binding FileType}" Header="Тип файла"/>
                 <DataGridTemplateColumn Header="Действия">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -36,6 +37,3 @@
         </DataGrid>
     </Grid>
 </UserControl>
-
-
-

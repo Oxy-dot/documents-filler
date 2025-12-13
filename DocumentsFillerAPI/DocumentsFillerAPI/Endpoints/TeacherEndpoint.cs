@@ -123,7 +123,7 @@ namespace DocumentsFillerAPI.Endpoints
 				var teachersToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a["id"]!).ToList() ?? new List<Guid>();
 
 				if (teachersToDelete.Count == 0)
-					throw new Exception("Teachers are empty");
+					throw new Exception("Учителя не переданы");
 
 				var result = await _provider.Delete(teachersToDelete);
 
@@ -163,7 +163,7 @@ namespace DocumentsFillerAPI.Endpoints
 				})?.ToList() ?? new();
 
 				if (teachersInfoToInsert.Count == 0)
-					throw new Exception("Teachers are empty");
+					throw new Exception("Учителя не переданы");
 
 				var currentTeachers = (await _provider.FullList(0, 0)).Teachers.Select(a => $"{a.SecondName} {a.FirstName.First()}.{(string.IsNullOrEmpty(a.Patronymic) ? "" :  (a.Patronymic.First() + "."))}").ToList();
 

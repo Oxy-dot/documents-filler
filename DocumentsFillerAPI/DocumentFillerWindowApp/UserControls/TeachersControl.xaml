@@ -34,32 +34,40 @@
             SelectionMode="Extended"
             SelectionUnit="FullRow"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
+            ScrollViewer.CanContentScroll="False"
             VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            EnableRowVirtualization="True"
+            EnableColumnVirtualization="True"
             AutoGenerateColumns="False"
+            HeadersVisibility="Column"
+            GridLinesVisibility="None"
+            RowHeaderWidth="0"
+            AlternatingRowBackground="Transparent"
             BeginningEdit="MainGrid_BeginningEdit"
             PreparingCellForEdit="MainGrid_PreparingCellForEdit"
             CellEditEnding="MainGrid_CellEditEnding"
             Grid.Row="1">
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding SecondName, UpdateSourceTrigger=PropertyChanged}" Header="Фамилия" />
-                <DataGridTextColumn Binding="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}" Header="Имя" />
-                <DataGridTextColumn Binding="{Binding Patronymic, UpdateSourceTrigger=PropertyChanged}" Header="Отчество" />
-                <DataGridComboBoxColumn SelectedItemBinding="{Binding AcademicTitle, UpdateSourceTrigger=LostFocus}" DisplayMemberPath="Name" Header="Должность">
-                    <DataGridComboBoxColumn.ElementStyle>
-                        <Style TargetType="ComboBox">
-                            <Setter Property="ItemsSource" Value="{Binding DataContext.AcademicTitles, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                            <Setter Property="IsHitTestVisible" Value="False"/>
-                            <Setter Property="Focusable" Value="False"/>
-                        </Style>
-                    </DataGridComboBoxColumn.ElementStyle>
-                    <DataGridComboBoxColumn.EditingElementStyle>
-                        <Style TargetType="ComboBox">
-                            <Setter Property="ItemsSource" Value="{Binding DataContext.AcademicTitles, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                            <EventSetter Event="PreviewKeyDown" Handler="ComboBox_PreviewKeyDown"/>
-                            <EventSetter Event="LostFocus" Handler="ComboBox_LostFocus"/>
-                        </Style>
-                    </DataGridComboBoxColumn.EditingElementStyle>
-                </DataGridComboBoxColumn>
+                <DataGridTextColumn Binding="{Binding SecondName, UpdateSourceTrigger=LostFocus}" Header="Фамилия" />
+                <DataGridTextColumn Binding="{Binding FirstName, UpdateSourceTrigger=LostFocus}" Header="Имя" />
+                <DataGridTextColumn Binding="{Binding Patronymic, UpdateSourceTrigger=LostFocus}" Header="Отчество" />
+                <DataGridTemplateColumn Header="Должность">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding AcademicTitle.Name}" VerticalAlignment="Center" Margin="5,0"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox SelectedItem="{Binding AcademicTitle, UpdateSourceTrigger=LostFocus}" 
+                                      DisplayMemberPath="Name"
+                                      ItemsSource="{Binding DataContext.AcademicTitles, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                      PreviewKeyDown="ComboBox_PreviewKeyDown"
+                                      LostFocus="ComboBox_LostFocus"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

@@ -159,15 +159,19 @@ namespace DocumentsFillerAPI.Providers
 
 				string sql = 
 					$@"
-					SELECT id,
+					SELECT bet.id,
 						   bet,
 						   hours_amount,
 						   teacher_id,
 						   department_id,
 						   is_excessive,
-						   ROW_NUMBER() OVER (ORDER BY id ASC, is_deleted DESC) AS row_id
-					FROM public.bet
-					WHERE is_deleted = False
+						   ROW_NUMBER() OVER (ORDER BY bet.id ASC, bet.is_deleted DESC) AS row_id
+					FROM public.bet INNER JOIN
+						   public.teacher ON public.bet.teacher_id = public.teacher.id AND
+										     public.teacher.is_deleted = False INNER JOIN
+						   public.department ON public.bet.department_id = public.department.id AND
+											    public.department.is_deleted = False
+					WHERE bet.is_deleted = False
 					OFFSET {startIndex}
 					LIMIT {(count == 0 ? "NULL" : count.ToString())}";
 

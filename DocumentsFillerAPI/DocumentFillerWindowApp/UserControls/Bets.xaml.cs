@@ -80,6 +80,12 @@ namespace DocumentFillerWindowApp.UserControls
 						bet.TeacherID = _oldTeacherID.Value;
 						comboBox.SelectedValue = _oldTeacherID.Value;
 					}
+					else
+					{
+						// Обновляем имя преподавателя
+						var teacher = _viewModel.Teachers.FirstOrDefault(t => t.ID == bet.TeacherID);
+						bet.TeacherFullName = teacher != null ? $"{teacher.SecondName} {teacher.FirstName} {teacher.Patronymic}" : "";
+					}
 				}
 				else if (e.Column.Header?.ToString() == "Кафедра" && e.EditingElement is ComboBox comboBoxDept)
 				{
@@ -88,6 +94,12 @@ namespace DocumentFillerWindowApp.UserControls
 						e.Cancel = true;
 						bet.DepartmentID = _oldDepartmentID.Value;
 						comboBoxDept.SelectedValue = _oldDepartmentID.Value;
+					}
+					else
+					{
+						// Обновляем название кафедры
+						var department = _viewModel.Departments.FirstOrDefault(d => d.ID == bet.DepartmentID);
+						bet.DepartmentName = department != null ? department.Name : "";
 					}
 				}
 				_oldTeacherID = null;

@@ -34,43 +34,53 @@
             SelectionMode="Extended"
             SelectionUnit="FullRow"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
+            ScrollViewer.CanContentScroll="False"
             VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            EnableRowVirtualization="True"
+            EnableColumnVirtualization="True"
+            HeadersVisibility="Column"
+            GridLinesVisibility="None"
+            RowHeaderWidth="0"
+            AlternatingRowBackground="Transparent"
             BeginningEdit="MainGrid_BeginningEdit"
             PreparingCellForEdit="MainGrid_PreparingCellForEdit"
             CellEditEnding="MainGrid_CellEditEnding"
             Grid.Row="1">
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding BetAmount, UpdateSourceTrigger=PropertyChanged}" Header="Доля ставки"/>
-                <DataGridTextColumn Binding="{Binding HoursAmount, UpdateSourceTrigger=PropertyChanged}" Header="Часы"/>
-                <DataGridComboBoxColumn SelectedValueBinding="{Binding TeacherID, UpdateSourceTrigger=LostFocus}" SelectedValuePath="ID" DisplayMemberPath="FullName" Header="Преподаватель">
-                    <DataGridComboBoxColumn.ElementStyle>
-                        <Style TargetType="ComboBox">
-                            <Setter Property="ItemsSource" Value="{Binding DataContext.Teachers, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                            <Setter Property="IsHitTestVisible" Value="False"/>
-                            <Setter Property="Focusable" Value="False"/>
-                        </Style>
-                    </DataGridComboBoxColumn.ElementStyle>
-                    <DataGridComboBoxColumn.EditingElementStyle>
-                        <Style TargetType="ComboBox">
-                            <Setter Property="ItemsSource" Value="{Binding DataContext.Teachers, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                        </Style>
-                    </DataGridComboBoxColumn.EditingElementStyle>
-                </DataGridComboBoxColumn>
-                <DataGridComboBoxColumn SelectedValueBinding="{Binding DepartmentID, UpdateSourceTrigger=LostFocus}" SelectedValuePath="ID" DisplayMemberPath="Name" Header="Кафедра">
-                    <DataGridComboBoxColumn.ElementStyle>
-                        <Style TargetType="ComboBox">
-                            <Setter Property="ItemsSource" Value="{Binding DataContext.Departments, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                            <Setter Property="IsHitTestVisible" Value="False"/>
-                            <Setter Property="Focusable" Value="False"/>
-                        </Style>
-                    </DataGridComboBoxColumn.ElementStyle>
-                    <DataGridComboBoxColumn.EditingElementStyle>
-                        <Style TargetType="ComboBox">
-                            <Setter Property="ItemsSource" Value="{Binding DataContext.Departments, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                        </Style>
-                    </DataGridComboBoxColumn.EditingElementStyle>
-                </DataGridComboBoxColumn>
-                <DataGridCheckBoxColumn Binding="{Binding IsExcessive, UpdateSourceTrigger=PropertyChanged}" Header="Дополнительная"/>
+                <DataGridTemplateColumn Header="Преподаватель">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding TeacherFullName}" VerticalAlignment="Center" Margin="5,0"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox SelectedValue="{Binding TeacherID, UpdateSourceTrigger=LostFocus}" 
+                      SelectedValuePath="ID"
+                      DisplayMemberPath="FullName"
+                      ItemsSource="{Binding DataContext.Teachers, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Binding="{Binding BetAmount, StringFormat=0.00, UpdateSourceTrigger=LostFocus}" Header="Доля ставки"/>
+                <DataGridTextColumn Binding="{Binding HoursAmount, UpdateSourceTrigger=LostFocus}" Header="Часы"/>
+                <DataGridTemplateColumn Header="Кафедра">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DepartmentName}" VerticalAlignment="Center" Margin="5,0"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox SelectedValue="{Binding DepartmentID, UpdateSourceTrigger=LostFocus}" 
+                                      SelectedValuePath="ID"
+                                      DisplayMemberPath="Name"
+                                      ItemsSource="{Binding DataContext.Departments, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+                <DataGridCheckBoxColumn Binding="{Binding IsExcessive, UpdateSourceTrigger=LostFocus}" Header="Дополнительная"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

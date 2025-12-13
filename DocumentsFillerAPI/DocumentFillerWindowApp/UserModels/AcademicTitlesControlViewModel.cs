@@ -65,7 +65,7 @@ namespace DocumentFillerWindowApp.UserModels
 		public async Task InsertTitles(List<string> names)
 		{
 			var result = await _titlesAPI.InsertTitles(names);
-			if (!string.IsNullOrEmpty(result))
+			if (!string.IsNullOrEmpty(result) && result != "Успешно")
 			{
 				MessageBox.Show(result, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
