@@ -26,4 +26,30 @@
     <PackageReference Include="NPOI" Version="2.7.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\hahahaha\source\repos\documents-filler\DocumentsFillerAPI\DocumentFillerWindowApp\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Users\hahahaha\source\repos\documents-filler\DocumentsFillerAPI\DocumentFillerWindowApp\.editorconfig" />
+  </ItemGroup>
+
 </Project>

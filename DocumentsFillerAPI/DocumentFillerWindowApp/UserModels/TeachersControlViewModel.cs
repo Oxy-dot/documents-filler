@@ -87,7 +87,7 @@ namespace DocumentFillerWindowApp.UserModels
 			var results = await _teachersAPI.Update(recordsToUpdate);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
-			if (!string.IsNullOrEmpty(results.Message))
+			if (results.Message != "Успешно")
 				MessageBox.Show(results.Message, "Ошибка при обновлении", MessageBoxButton.OK, MessageBoxImage.Error);
 
 			if (errorResults.Count > 0)
@@ -110,7 +110,7 @@ namespace DocumentFillerWindowApp.UserModels
 			var results = await _teachersAPI.Delete(recordsToDelete);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
-			if (!string.IsNullOrEmpty(results.Message))
+			if (results.Message != "Успешно")
 				MessageBox.Show(results.Message, "Ошибка при удалении", MessageBoxButton.OK, MessageBoxImage.Error);
 
 			if (errorResults.Count > 0)
@@ -139,7 +139,6 @@ namespace DocumentFillerWindowApp.UserModels
 			{
 				teachersFromAPI = teachersFromAPI.Where(a => a.AcademicTitle != null).ToList();
 			}
-			// Синхронизируем AcademicTitle с объектами из AcademicTitles
 			foreach (var teacher in teachersFromAPI)
 			{
 				if (teacher.AcademicTitle != null)
@@ -155,7 +154,6 @@ namespace DocumentFillerWindowApp.UserModels
 			Teachers = new ObservableCollection<TeacherRecord>(teachersFromAPI);
 			Teachers.CollectionChanged += OnCollectionChanged;
 			OnPropertyChanged("Teachers");
-			// Клонируем записи для сохранения исходных значений
 			_lastTeachers = Teachers.Select(t => (TeacherRecord)t.Clone()).ToList();
 			foreach (var teacher in Teachers)
 			{
@@ -250,11 +248,6 @@ namespace DocumentFillerWindowApp.UserModels
 				OnPropertyChanged();
 			}
 		}
-
-		//public override int GetHashCode()
-		//{
-		//	return HashCode.Combine(ID.GetHashCode(), _secondName.GetHashCode(), _firstName.GetHashCode(), _patronymic.GetHashCode(), _academicTitle?.ID.GetHashCode() ?? 0);
-		//}
 
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public void OnPropertyChanged([CallerMemberName] string propertyName = "")

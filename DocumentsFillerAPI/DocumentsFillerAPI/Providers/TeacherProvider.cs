@@ -2,14 +2,12 @@
 using DocumentsFillerAPI.Structures;
 using Npgsql;
 using NpgsqlTypes;
-using NPOI.SS.Formula.Functions;
-using NPOI.SS.UserModel;
 
 namespace DocumentsFillerAPI.Providers
 {
 	public class TeacherProvider
 	{
-		private string connectionString = "Host=localhost;Port=5432;Database=document_filler;Username=postgres;Password=root";
+		private string connectionString = ConfigProvider.Get<string>("ConnectionStrings:PgSQL");
 
 		public async Task<(ResultMessage Message, List<DeleteTeachersRecord> DeleteResults)> Delete(IEnumerable<Guid> teachers)
 		{
@@ -37,7 +35,7 @@ namespace DocumentsFillerAPI.Providers
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
-								throw new Exception($"Rows with teacherID={teacherID} wasnt updated");
+								throw new Exception($"Строка с ИД={teacherID} не была добавлена");
 
 							deleteResults.Add(new DeleteTeachersRecord { TeacherID = teacherID, IsSuccess = true, Message = "" });
 						}
@@ -50,8 +48,8 @@ namespace DocumentsFillerAPI.Providers
 
 				ResultMessage message = new ResultMessage
 				{
-					Message = deleteResults.Count(a => !a.IsSuccess) == 0 ? "Success" : "Success with errors",
-					IsSuccess = deleteResults.Count(a => !a.IsSuccess) == 0,
+					Message = deleteResults.Count(a => !a.IsSuccess) == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", deleteResults)}",
+					IsSuccess = true,
 				};
 
 				return new (message, deleteResults);
@@ -145,7 +143,7 @@ namespace DocumentsFillerAPI.Providers
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
-								throw new Exception($"Rows with teacher id={teacher.ID} wasnt updated");
+								throw new Exception($"Строка с ИД={teacher.ID} не была обновлена");
 
 							results.Add(new UpdateTeacherRecord { Teacher = teacher, IsSuccess = true, Message = "" });
 						}
@@ -158,7 +156,7 @@ namespace DocumentsFillerAPI.Providers
 
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count == 0 ? "Success" : "Success with errors",
+					Message = results.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results)}",
 					IsSuccess = results.Count == 0,
 				};
 
@@ -225,7 +223,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return (new ResultMessage() { IsSuccess = true, Message = "Success" }, results);
+				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results);
 			}
 			catch (Exception ex)
 			{
@@ -275,7 +273,7 @@ namespace DocumentsFillerAPI.Providers
 					var reader = cmd.ExecuteReader();
 
 					reader.Read();
-					return (new ResultMessage() { IsSuccess = true, Message = "Success" }, reader.GetGuid(0));
+					return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, reader.GetGuid(0));
 				}
 			}
 			catch (Exception ex)

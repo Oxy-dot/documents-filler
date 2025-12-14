@@ -38,7 +38,7 @@ namespace DocumentsFillerAPI.ExcelHelper
 					int fullNameColumnIndex = additionalBetColumnIndex.HasValue ? additionalBetColumnIndex.Value + 2 : mainBetColumnIndex + 3;
 
 					if (additionalBetColumnIndex == null || excessiveHoursColumnIndex == null)
-						return ($"Cant find all needed column in file: MainBetColumnIndex={mainBetColumnIndex}, AdditionalBetColumnIndex={additionalBetColumnIndex}, ExcessiveHoursColumnIndex={excessiveHoursColumnIndex}, FullNameColumnIndex={fullNameColumnIndex}", new List<PPSParsedRow>());
+						return ($"Не смог найти все нужные колонки в файле", new List<PPSParsedRow>());
 
 					List<string> allErrors = new List<string>();
 					List<PPSParsedRow> rows = new List<PPSParsedRow>();
@@ -53,9 +53,9 @@ namespace DocumentsFillerAPI.ExcelHelper
 						var excessiveHoursCell = row.Cells.FirstOrDefault(a => a.ColumnIndex == excessiveHoursColumnIndex); /*currentRow.GetCell().CellType == NPOI.SS.UserModel.CellType.Blank ? null : currentRow.GetCell(2).NumericCellValue;*/
 						var fullNameCell = row.Cells.FirstOrDefault(a => a.ColumnIndex == fullNameColumnIndex);
 
-						if (excessiveHoursCell == null || excessiveHoursCell.CellType == CellType.Blank || fullNameCell == null || fullNameCell.CellType == CellType.Blank)
+						if (fullNameCell == null || fullNameCell.CellType == CellType.Blank)
 						{
-							allErrors.Add($"Cant find main bet or add bet or fullName on row = {row.RowNum+1}");
+							allErrors.Add($"Не смог найти фио в строке = {row.RowNum+1}");
 							return;
 						}
 

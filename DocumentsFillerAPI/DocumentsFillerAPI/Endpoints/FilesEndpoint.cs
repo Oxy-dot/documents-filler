@@ -1,9 +1,8 @@
-﻿using DocumentsFillerAPI.ExcelWorker;
-using DocumentsFillerAPI.ExcelHelper;
+﻿using DocumentsFillerAPI.ExcelHelper;
+using DocumentsFillerAPI.ExcelWorker;
 using DocumentsFillerAPI.Helper;
 using DocumentsFillerAPI.Providers;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -43,16 +42,12 @@ namespace DocumentsFillerAPI.Endpoints
 				var files = await _provider.List(0, 0);
 				var file = files.Files.FirstOrDefault(f => f.FileID == fileID);
 
-				if (file == null || string.IsNullOrEmpty(file.Path))
-					return NotFound(new JsonObject() { ["message"] = "File not found" });
-
-				if (!System.IO.File.Exists(file.Path))
-					return NotFound(new JsonObject() { ["message"] = "File not found on disk" });
+				if (file == null || string.IsNullOrEmpty(file.Path) || !System.IO.File.Exists(file.Path))
+					return NotFound(new JsonObject() { ["message"] = "Файл не найден" });
 
 				var fileStream = new FileStream(file.Path, FileMode.Open, FileAccess.Read);
 				var fileName = Path.GetFileName(file.Path);
 				
-				// Извлекаем оригинальное имя файла (убираем GUID префикс)
 				if (fileName.Contains('_'))
 				{
 					fileName = fileName.Substring(fileName.IndexOf('_') + 1);
@@ -117,7 +112,7 @@ namespace DocumentsFillerAPI.Endpoints
 				var filesToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a!)?.ToList() ?? new List<Guid>();
 
 				if (filesToDelete.Count == 0)
-					throw new Exception("Files to delete were empty");
+					throw new Exception("Отсутствуют файлы для удаления");
 
 				var deleteFilesResult = await _provider.DeleteFiles(filesToDelete);
 
@@ -162,19 +157,16 @@ namespace DocumentsFillerAPI.Endpoints
 					{
 						FullName = (string)a["fullName"]!,
 						AcademicTitle = (string)a["academicTitle"]!,
-						Bet = (double)a["bet"]!
 					}).ToList(),
 					InternalStaff = jBody["internalStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.StaffingTemplateRow
 					{
 						FullName = (string)a["fullName"]!,
 						AcademicTitle = (string)a["academicTitle"]!,
-						Bet = (double)a["bet"]!
 					}).ToList(),
 					ExternalStaff = jBody["externalStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.StaffingTemplateRow
 					{
 						FullName = (string)a["fullName"]!,
 						AcademicTitle = (string)a["academicTitle"]!,
-						Bet = (double)a["bet"]!
 					}).ToList(),
 				};
 				Guid? departmentID = (await _departmentProvider.Get(data.DepartmentName)).Item2?.ID;
@@ -239,7 +231,6 @@ namespace DocumentsFillerAPI.Endpoints
 					staff.Bet = bet.Item2.BetAmount;
 				}
 
-
 				var stream = new MemoryStream();
 
 				_excelFilesGenerator.GenerateStaffingTemplate(data).Write(stream, true);
@@ -287,61 +278,21 @@ namespace DocumentsFillerAPI.Endpoints
 					{
 						FullName = (string)a["fullName"]!,
 						AcademicTitle = (string)a["academicTitle"]!,
-						MainBetInfo = a["mainBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["mainBetInfo"]!["bet"]!,
-						} : null,
-						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["excessiveBetInfo"]!["bet"]!,
-						} : null,
 					}).ToList(),
 					InternalStaff = jBody["internallStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.ServiceMemoTemplateRow
 					{
 						FullName = (string)a["fullName"]!,
 						AcademicTitle = (string)a["academicTitle"]!,
-						MainBetInfo = a["mainBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["mainBetInfo"]!["bet"]!,
-						} : null,
-						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["excessiveBetInfo"]!["bet"]!,
-						} : null,
 					}).ToList(),
 					ExternalStaff = jBody["externalStaff"]!.AsArray().Select(a => new ExcelFilesGenerator.ServiceMemoTemplateRow
 					{
 						FullName = (string)a["fullName"]!,
 						AcademicTitle = (string)a["academicTitle"]!,
-						MainBetInfo = a["mainBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["mainBetInfo"]!["bet"]!,
-						} : null,
-						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["excessiveBetInfo"]!["bet"]!,
-						} : null,
 					}).ToList(),
 					HourlyWorkers = jBody["hourlyWorkers"]!.AsArray().Select(a => new ExcelFilesGenerator.ServiceMemoTemplateRow
 					{
 						FullName = (string)a["fullName"]!,
 						AcademicTitle = (string)a["academicTitle"]!,
-						MainBetInfo = a["mainBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["mainBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["mainBetInfo"]!["bet"]!,
-						} : null,
-						ExcessiveBetInfo = a["excessiveBetInfo"] != null ? new ExcelFilesGenerator.ServiceMemoTemplateBetStruct()
-						{
-							HoursAmount = (int)a["excessiveBetInfo"]!["hoursAmount"]!,
-							Bet = (double)a["excessiveBetInfo"]!["bet"]!,
-						} : null,
 					}).ToList(),
 				};
 
@@ -540,11 +491,10 @@ namespace DocumentsFillerAPI.Endpoints
 				{
 					return BadRequest(new JsonObject()
 					{
-						["message"] = "File is required"
+						["message"] = "Файл не найден"
 					});
 				}
 
-				// Создаем временный файл
 				tempFilePath = Path.GetTempFileName();
 				
 				using (var stream = new MemoryStream())
@@ -552,14 +502,12 @@ namespace DocumentsFillerAPI.Endpoints
 					await file.CopyToAsync(stream);
 					stream.Position = 0;
 
-					// Сохраняем во временный файл
 					using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.ReadWrite))
 					{
 						await stream.CopyToAsync(fileStream);
 					}
 				}
 
-				// Открываем файл для чтения и парсинга
 				using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
 				{
 					var result = _excelFilesParser.ParsePPSExcelFile(fileStream);

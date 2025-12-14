@@ -40,7 +40,7 @@ namespace DocumentsFillerAPI.Endpoints
 				}).ToList() ?? new List<DepartmentStruct>();
 
 				if (departmentsToInsert.Count == 0)
-					throw new Exception("Departments to insert count = 0");
+					throw new Exception("Не найдены кафедры для вставки");
 
 				var result = await _provider.Insert(departmentsToInsert);
 
@@ -99,7 +99,7 @@ namespace DocumentsFillerAPI.Endpoints
 				}).ToList() ?? new List<DepartmentStruct>();
 
 				if (departmentsToUpdate.Count == 0)
-					throw new Exception("Departments is empty");
+					throw new Exception("Не найдены кафедры для обновления");
 
 				var result = await _provider.Update(departmentsToUpdate);
 
@@ -131,7 +131,7 @@ namespace DocumentsFillerAPI.Endpoints
 				var departmentsToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a["id"]!).ToList() ?? new List<Guid>();
 
 				if (departmentsToDelete.Count == 0)
-					throw new Exception("Departments is empty");
+					throw new Exception("Не найдены кафедры для удаления");
 
 				var result = await _provider.Delete(departmentsToDelete);
 

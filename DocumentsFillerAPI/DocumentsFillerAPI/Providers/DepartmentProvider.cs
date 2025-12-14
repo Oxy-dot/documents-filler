@@ -1,13 +1,12 @@
 ﻿using DocumentsFillerAPI.Controllers;
 using DocumentsFillerAPI.Structures;
 using Npgsql;
-using static DocumentsFillerAPI.Providers.AcademicTitlePostgreProvider;
 
 namespace DocumentsFillerAPI.Providers
 {
 	public class DepartmentProvider
 	{
-		private string connectionString = "Host=localhost;Port=5432;Database=document_filler;Username=postgres;Password=root";
+		private string connectionString = ConfigProvider.Get<string>("ConnectionStrings:PgSQL");
 
 		public async Task<(ResultMessage Message, List<DeleteDepartmentStruct> Results)> Delete(List<Guid> departmentIDs)
 		{
@@ -35,7 +34,7 @@ namespace DocumentsFillerAPI.Providers
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
-								throw new Exception($"Rows with departmentID={departmentID} wasnt updated");
+								throw new Exception($"Строка с ИД={departmentID} не была обновлена");
 
 							results.Add(new DeleteDepartmentStruct { DepartmentID = departmentID, IsSuccess = true, Message = "" });
 						}
@@ -48,8 +47,8 @@ namespace DocumentsFillerAPI.Providers
 
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count(a => !a.IsSuccess) == 0 ? "Success" : "Success with errors",
-					IsSuccess = results.Count(a => !a.IsSuccess) == 0,
+					Message = results.Count(a => !a.IsSuccess) == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results)}",
+					IsSuccess = true,
 				};
 
 				return (message, results);
@@ -92,7 +91,7 @@ namespace DocumentsFillerAPI.Providers
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
-								throw new Exception($"Row with name={department.Name} wasnt inserted");
+								throw new Exception($"Строка с именем={department.Name} не была добавлена");
 						}
 						catch (Exception ex)
 						{
@@ -145,7 +144,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return new(new ResultMessage() { IsSuccess = true, Message = "Success" }, results);
+				return new(new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results);
 			}
 			catch (Exception ex)
 			{
@@ -181,7 +180,7 @@ namespace DocumentsFillerAPI.Providers
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
-								throw new Exception($"Rows with title name={department.Name} wasnt updated");
+								throw new Exception($"Строка с названием={department.Name} не была обновлена");
 
 							results.Add(new UpdateDepartmentStruct { Department  = department, IsSuccess = true, Message = "" });
 						}
@@ -194,8 +193,8 @@ namespace DocumentsFillerAPI.Providers
 
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count(a => !a.IsSuccess) == 0 ? "Success" : "Success with errors",
-					IsSuccess = results.Count(a => !a.IsSuccess) == 0,
+					Message = results.Count(a => !a.IsSuccess) == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results)}",
+					IsSuccess = true,
 				};
 
 				return (message, results);
@@ -246,7 +245,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return (new ResultMessage() { IsSuccess = true, Message = "Success" }, results);
+				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results);
 			}
 			catch (Exception ex)
 			{
@@ -287,7 +286,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return (new ResultMessage() { IsSuccess = true, Message = "Success" }, results.First());
+				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results.First());
 			}
 			catch (Exception ex)
 			{

@@ -49,12 +49,10 @@ namespace DocumentFillerWindowApp.UserControls
 		{
 			if (e.Column.Header?.ToString() == "Должность" && e.EditingElement is ComboBox comboBox && _editingTeacher != null)
 			{
-				// Устанавливаем ItemsSource, если он еще не установлен
 				if (comboBox.ItemsSource == null)
 				{
 					comboBox.ItemsSource = _viewModel.AcademicTitles;
 				}
-				// Устанавливаем начальное значение в ComboBox
 				comboBox.SelectedItem = _editingTeacher.AcademicTitle;
 			}
 		}
@@ -65,14 +63,12 @@ namespace DocumentFillerWindowApp.UserControls
 			{
 				if (e.EditingElement is ComboBox comboBox)
 				{
-					// Если значение стало null, а старое было не null, восстанавливаем старое значение
 					if (teacher.AcademicTitle == null && _oldAcademicTitle != null)
 					{
-						// Отменяем редактирование и восстанавливаем старое значение
 						e.Cancel = true;
 						teacher.AcademicTitle = _oldAcademicTitle;
 					}
-					_oldAcademicTitle = null; // Очищаем сохраненное значение
+					_oldAcademicTitle = null;
 					_editingTeacher = null;
 				}
 			}
@@ -82,7 +78,6 @@ namespace DocumentFillerWindowApp.UserControls
 		{
 			if (e.Key == Key.Escape && sender is ComboBox comboBox)
 			{
-				// При нажатии Escape восстанавливаем старое значение
 				if (_editingTeacher != null && _oldAcademicTitle != null)
 				{
 					_editingTeacher.AcademicTitle = _oldAcademicTitle;
@@ -95,13 +90,11 @@ namespace DocumentFillerWindowApp.UserControls
 		{
 			if (sender is ComboBox comboBox && _editingTeacher != null)
 			{
-				// Если после потери фокуса значение null, а старое было не null, восстанавливаем
 				if (_editingTeacher.AcademicTitle == null && _oldAcademicTitle != null)
 				{
 					_editingTeacher.AcademicTitle = _oldAcademicTitle;
 					comboBox.SelectedItem = _oldAcademicTitle;
 				}
-				// Также проверяем, если SelectedItem в ComboBox null, но старое значение было не null
 				else if (comboBox.SelectedItem == null && _oldAcademicTitle != null)
 				{
 					_editingTeacher.AcademicTitle = _oldAcademicTitle;

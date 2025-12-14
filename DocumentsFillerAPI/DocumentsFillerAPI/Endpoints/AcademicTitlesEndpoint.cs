@@ -39,7 +39,7 @@ namespace DocumentsFillerAPI.Endpoints
 				}).ToList() ?? new List<AcademicTitleStruct>();
 
 				if (titlesToInsert.Count == 0)
-					throw new Exception("Titles to insert count = 0");
+					throw new Exception("Не найдены должности для вставки");
 
 				var result = await _provider.Insert(titlesToInsert);
 
@@ -99,7 +99,7 @@ namespace DocumentsFillerAPI.Endpoints
 				}).ToList() ?? new List<AcademicTitleStruct>();
 
 				if (titlesToUpdate.Count == 0)
-					throw new Exception("Titles is empty");
+					throw new Exception("Не найдены должности для обновления");
 
 				var result = await _provider.Update(titlesToUpdate);
 
@@ -131,7 +131,7 @@ namespace DocumentsFillerAPI.Endpoints
 				var titlesToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a["id"]!).ToList() ?? new List<Guid>();
 
 				if (titlesToDelete.Count == 0)
-					throw new Exception("Titles is empty");
+					throw new Exception("Не найдены должности для удаления");
 
 				var result = await _provider.Delete(titlesToDelete);
 

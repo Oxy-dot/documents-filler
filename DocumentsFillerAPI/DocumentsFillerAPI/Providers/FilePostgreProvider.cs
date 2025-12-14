@@ -1,12 +1,11 @@
 ﻿using DocumentsFillerAPI.Controllers;
 using Npgsql;
-using System.IO;
 
 namespace DocumentsFillerAPI.Providers
 {
 	public class FilePostgreProvider
 	{
-		private string connectionString = "Host=localhost;Port=5432;Database=document_filler;Username=postgres;Password=root";
+		private string connectionString = ConfigProvider.Get<string>("ConnectionStrings:PgSQL");
 
 		public async Task<(ResultMessage Message, List<FileForListStruct> Files)> List(uint count, uint startIndex)
 		{

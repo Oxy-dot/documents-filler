@@ -12,7 +12,6 @@ namespace DocumentsFillerAPI.Endpoints
 	{
 		private TeacherProvider _provider = new TeacherProvider();
 		private BetPostgreProvider _betProvider = new BetPostgreProvider();
-		private AcademicTitlePostgreProvider _academicTitleProvider = new AcademicTitlePostgreProvider();
 
 		[HttpGet("getFullInfo")]
 		public async Task<IActionResult> GetTeachersFullInfo()
@@ -47,7 +46,7 @@ namespace DocumentsFillerAPI.Endpoints
 				}).ToList() ?? new List<TeacherFullInfoStruct>();
 
 				if (teachersToInsert.Count == 0)
-					throw new Exception("Teachers to insert count = 0");
+					throw new Exception("Не найдены учителя для вставки");
 
 				var result = await _provider.Insert(teachersToInsert);
 
@@ -91,7 +90,7 @@ namespace DocumentsFillerAPI.Endpoints
 				}).ToList() ?? new List<TeacherFullInfoStruct>();
 
 				if (teachersToUpdate.Count == 0)
-					throw new Exception("Teachers are empty");
+					throw new Exception("Не найдены учителя для обновления");
 
 				var result = await _provider.Update(teachersToUpdate);
 
@@ -123,7 +122,7 @@ namespace DocumentsFillerAPI.Endpoints
 				var teachersToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a["id"]!).ToList() ?? new List<Guid>();
 
 				if (teachersToDelete.Count == 0)
-					throw new Exception("Учителя не переданы");
+					throw new Exception("Не найдены учителя для удаления");
 
 				var result = await _provider.Delete(teachersToDelete);
 
@@ -163,7 +162,7 @@ namespace DocumentsFillerAPI.Endpoints
 				})?.ToList() ?? new();
 
 				if (teachersInfoToInsert.Count == 0)
-					throw new Exception("Учителя не переданы");
+					throw new Exception("Не найдены учителя для вставки");
 
 				var currentTeachers = (await _provider.FullList(0, 0)).Teachers.Select(a => $"{a.SecondName} {a.FirstName.First()}.{(string.IsNullOrEmpty(a.Patronymic) ? "" :  (a.Patronymic.First() + "."))}").ToList();
 
@@ -176,14 +175,7 @@ namespace DocumentsFillerAPI.Endpoints
 											join teacherToUpdateName in currentTeachers.Except(teachersNamesToInsert) on teacherInfo.FullName equals teacherToUpdateName
 											select teacherInfo).ToList();
 
-				//ResultMessage? mainBetInsertResult = default;
-				//ResultMessage? excessiveBetInsertResult = default;
-
 				string insertTeachersMessage = string.Empty;
-
-				//List<TeacherFullInfoStruct> insertedTeachers = new List<TeacherFullInfoStruct>();
-				//List<string> notInsertedTeachers = new List<string>();
-				//string teachersInsertMessage = string.Empty;
 
 				string insertMainBetMessage = string.Empty;
 				List<BetPostgreProvider.UpdateBetStruct> updatedMainBets = new List<BetPostgreProvider.UpdateBetStruct>();

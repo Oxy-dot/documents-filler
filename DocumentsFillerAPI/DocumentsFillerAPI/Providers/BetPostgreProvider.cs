@@ -6,7 +6,7 @@ namespace DocumentsFillerAPI.Providers
 {
 	public class BetPostgreProvider
 	{
-		private string connectionString = "Host=localhost;Port=5432;Database=document_filler;Username=postgres;Password=root";
+		private string connectionString = ConfigProvider.Get<string>("ConnectionStrings:PgSQL");
 
 		public async Task<ResultMessage> Delete(IEnumerable<Guid> bets)
 		{
@@ -26,7 +26,7 @@ namespace DocumentsFillerAPI.Providers
 					cmd.ExecuteNonQuery();
 				}
 
-				return new ResultMessage() { IsSuccess = true, Message = "Success" };
+				return new ResultMessage() { IsSuccess = true, Message = "Успешно" };
 			}
 			catch (Exception ex)
 			{
@@ -64,7 +64,7 @@ namespace DocumentsFillerAPI.Providers
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
 								//and bet = { bet.IsAdditional } and bet = { bet.IsExcessive }
-								throw new Exception($"Row with bet={bet.BetAmount} and bet={bet.HoursAmount} for te {bet.TeacherID} wasnt inserted");
+								throw new Exception($"Строка со ставкой={bet.BetAmount} и часовой ставкой={bet.HoursAmount} для учителя с ID={bet.TeacherID} не была добавлена");
 						}
 						catch (Exception ex)
 						{
@@ -73,7 +73,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				string message = errors.Count == 0 ? "Success" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", errors)}";
+				string message = errors.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", errors)}";
 
 				return new ResultMessage() { Message = message, IsSuccess = true };
 			}
@@ -119,7 +119,7 @@ namespace DocumentsFillerAPI.Providers
 
 							int cnt = cmd.ExecuteNonQuery();
 							if (cnt != 1)
-								throw new Exception($"Rows with bet id={bet.ID} wasnt updated");
+								throw new Exception($"Строка с ИД={bet.ID} не была обновлена");
 
 							results.Add(new UpdateBetStruct { Bet = bet, IsSuccess = true, Message = "" });
 						}
@@ -132,7 +132,7 @@ namespace DocumentsFillerAPI.Providers
 
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count == 0 ? "Успешно" : "Успешно с ошибками",
+					Message = results.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results)}",
 					IsSuccess = results.Count == 0,
 				};
 
@@ -194,7 +194,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return (new ResultMessage() { IsSuccess = true, Message = "Success" }, results);
+				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results);
 			}
 			catch (Exception ex)
 			{
@@ -242,7 +242,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return (new ResultMessage() { IsSuccess = true, Message = "Success" }, results.First());
+				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results.First());
 			}
 			catch (Exception ex)
 			{

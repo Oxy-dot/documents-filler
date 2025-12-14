@@ -109,7 +109,7 @@ namespace DocumentFillerWindowApp.UserModels
 			}).ToList();
 
 			var results = _betsAPI.Insert(betsToInsert).Result;
-			if (!string.IsNullOrEmpty(results.Message))
+			if (results.Message != "Успешно")
 			{
 				MessageBox.Show(results.Message, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
@@ -130,7 +130,7 @@ namespace DocumentFillerWindowApp.UserModels
 			var results = _betsAPI.Update(betsToUpdate).Result;
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
-			if (!string.IsNullOrEmpty(results.Message))
+			if (results.Message != "Успешно")
 				MessageBox.Show(results.Message, "Ошибка при обновлении", MessageBoxButton.OK, MessageBoxImage.Error);
 
 			if (errorResults.Count > 0)

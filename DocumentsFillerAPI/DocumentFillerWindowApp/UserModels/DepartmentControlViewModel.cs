@@ -83,7 +83,7 @@ namespace DocumentFillerWindowApp.UserModels
 			var results = await _departmentAPI.Update(recordsToUpdate);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
-			if (!string.IsNullOrEmpty(results.Message))
+			if (results.Message != "Успешно" )
 				MessageBox.Show(results.Message, "Ошибка при вставке", MessageBoxButton.OK, MessageBoxImage.Error);
 
 			if (errorResults.Count > 0)
@@ -98,7 +98,7 @@ namespace DocumentFillerWindowApp.UserModels
 			var results = await _departmentAPI.Delete(recordsToDelete);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
-			if (!string.IsNullOrEmpty(results.Message))
+			if (results.Message != "Успешно")
 				MessageBox.Show(results.Message, "Ошибка при удалении", MessageBoxButton.OK, MessageBoxImage.Error);
 
 			if (errorResults.Count > 0)
