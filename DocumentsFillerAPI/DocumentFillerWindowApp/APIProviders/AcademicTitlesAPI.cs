@@ -24,7 +24,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					Name = (string)a["Name"]!
 				}).ToList();
 
-				return ("", titles);
+				return ((string)response.Response["message"]!, titles);
 			}
 			catch (Exception ex)
 			{
@@ -106,7 +106,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					(bool)a["IsSuccess"]!,
 					(string)a["Name"]!)).ToList();
 
-				return new ("", updated);
+				return new ((string)response.Response["message"]!, updated);
 			}
 			catch (Exception ex)
 			{
@@ -136,7 +136,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					(bool)a["IsSuccess"]!,
 					(Guid)a["TitleID"]!)).ToList();
 
-				return new ("", deleted);
+				return new ((string)response.Response["message"]!, deleted);
 			}
 			catch (Exception ex)
 			{

@@ -76,7 +76,7 @@ namespace DocumentFillerWindowApp.UserModels
 		public async Task InsertTeachers(List<TeacherRecord> teachers)
 		{
 			var result = await _teachersAPI.InsertTeachers(teachers);
-			if (!string.IsNullOrEmpty(result))
+			if (result != "Успешно")
 			{
 				MessageBox.Show(result, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
@@ -164,7 +164,7 @@ namespace DocumentFillerWindowApp.UserModels
 		private void UpdateAcademicTitlesFromAPI()
 		{
 			var getTitlesResult = _titlesAPI.Get().Result;
-			if (string.IsNullOrEmpty(getTitlesResult.Message))
+			if (getTitlesResult.Message == "Успешно")
 				AcademicTitles = getTitlesResult.Titles;
 		}
 

@@ -32,7 +32,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					IsExcessive = a["IsExcessive"] != null ? (bool)a["IsExcessive"]! : false
 				}).ToList();
 
-				return ("", bets);
+				return ((string)response.Response["message"]!, bets);
 			}
 			catch (Exception ex)
 			{
@@ -65,7 +65,7 @@ namespace DocumentFillerWindowApp.APIProviders
 				if (response.Response == null)
 					throw new Exception("Response is null");
 
-				return ("", new List<BetRecord>());
+				return ((string)response.Response["message"]!, new List<BetRecord>());
 			}
 			catch (Exception ex)
 			{
@@ -104,7 +104,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					(bool)a["IsSuccess"]!,
 					(Guid)a["BetID"]!)).ToList();
 
-				return new("", updated);
+				return new((string)response.Response["message"]!, updated);
 			}
 			catch (Exception ex)
 			{
@@ -130,7 +130,7 @@ namespace DocumentFillerWindowApp.APIProviders
 				if (response.Response == null)
 					throw new Exception("Response is null");
 
-				return "";
+				return (string)response.Response["message"]!;
 			}
 			catch (Exception ex)
 			{

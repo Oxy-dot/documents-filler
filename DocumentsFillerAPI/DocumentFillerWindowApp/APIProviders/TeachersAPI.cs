@@ -102,7 +102,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					(bool)a["IsSuccess"]!,
 					(Guid)a["ID"]!)).ToList();
 
-				return new("", updated);
+				return new((string)response.Response["message"]!, updated);
 			}
 			catch (Exception ex)
 			{
@@ -132,7 +132,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					(bool)a["IsSuccess"]!,
 					(Guid)a["TeacherID"]!)).ToList();
 
-				return new("", deleted);
+				return new((string)response.Response["message"]!, deleted);
 			}
 			catch (Exception ex)
 			{

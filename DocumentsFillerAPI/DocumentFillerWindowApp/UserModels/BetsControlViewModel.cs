@@ -147,7 +147,7 @@ namespace DocumentFillerWindowApp.UserModels
 			var betsToDelete = recordsToDelete.Select(a => new BetRecord { ID = a.ID }).ToList();
 			var results = await _betsAPI.Delete(betsToDelete);
 
-			if (!string.IsNullOrEmpty(results))
+			if (results != "Успешно")
 				MessageBox.Show(results, "Ошибка при удалении", MessageBoxButton.OK, MessageBoxImage.Error);
 
 			UpdateBetsFromAPI();
@@ -159,7 +159,7 @@ namespace DocumentFillerWindowApp.UserModels
 			var teachersResult = _teachersAPI.GetFullInfo().Result;
 			var departmentsResult = _departmentsAPI.Get().Result;
 
-			if (!string.IsNullOrEmpty(betsResult.Message))
+			if (betsResult.Message != "Успешно")
 			{
 				MessageBox.Show(betsResult.Message, "Ошибка загрузки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 				return;

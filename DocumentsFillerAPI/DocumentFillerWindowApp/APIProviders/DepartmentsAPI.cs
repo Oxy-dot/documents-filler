@@ -78,7 +78,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					FullName = a["FullName"] != null ? (string)a["FullName"]! : ""
 				}).ToList();
 
-				return new(departments, "");
+				return new(departments, (string)response.Response["message"]!);
 			}
 			catch (Exception ex)
 			{
@@ -113,7 +113,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					(bool)a["IsSuccess"]!,
 					(string)a["Name"]!)).ToList();
 
-				return new("", updated);
+				return new((string)response.Response["message"]!, updated);
 			}
 			catch (Exception ex)
 			{
@@ -143,7 +143,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					(bool)a["IsSuccess"]!,
 					(Guid)a["DepartmentID"]!)).ToList();
 
-				return new("", deleted);
+				return new((string)response.Response["message"]!, deleted);
 			}
 			catch (Exception ex)
 			{

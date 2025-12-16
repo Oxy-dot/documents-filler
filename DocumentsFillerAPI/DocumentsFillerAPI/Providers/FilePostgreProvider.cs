@@ -5,14 +5,12 @@ namespace DocumentsFillerAPI.Providers
 {
 	public class FilePostgreProvider
 	{
-		private string connectionString = ConfigProvider.Get<string>("ConnectionStrings:PgSQL");
+		private static NpgsqlDataSource DataSource => StaticHelper.DataSource;
 
 		public async Task<(ResultMessage Message, List<FileForListStruct> Files)> List(uint count, uint startIndex)
 		{
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-
 				string sql =
 					$@"
 					SELECT file.id AS file_id,
@@ -29,9 +27,9 @@ namespace DocumentsFillerAPI.Providers
 
 				List<FileForListStruct> files = new List<FileForListStruct>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = DataSource.CreateCommand(sql))
 				{
-					var reader = await cmd.ExecuteReaderAsync();
+					await using var reader = await cmd.ExecuteReaderAsync();
 					while (await reader.ReadAsync())
 					{
 						files.Add(new FileForListStruct
@@ -59,8 +57,7 @@ namespace DocumentsFillerAPI.Providers
 				return new (new ResultMessage() { Message = "Success", IsSuccess = true }, new(), new());
 			}
 
-			await using var dataSource = NpgsqlDataSource.Create(connectionString);
-			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var connection = await DataSource.OpenConnectionAsync();
 			await using var transaction = await connection.BeginTransactionAsync();
 
 			try
@@ -77,7 +74,7 @@ namespace DocumentsFillerAPI.Providers
 				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
 					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
-					var dateParam = new NpgsqlParameter("@date", NpgsqlTypes.NpgsqlDbType.Timestamp);
+					var dateParam = new NpgsqlParameter("@date", NpgsqlTypes.NpgsqlDbType.Date);
 					var typeIdParam = new NpgsqlParameter("@typeId", NpgsqlTypes.NpgsqlDbType.Uuid);
 					var pathParam = new NpgsqlParameter("@path", NpgsqlTypes.NpgsqlDbType.Text);
 
@@ -133,8 +130,7 @@ namespace DocumentsFillerAPI.Providers
 				return new (new ResultMessage() { Message = "Успешно", IsSuccess = true }, new List<DeleteFilesStruct>());
 			}
 
-			await using var dataSource = NpgsqlDataSource.Create(connectionString);
-			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var connection = await DataSource.OpenConnectionAsync();
 			await using var transaction = await connection.BeginTransactionAsync();
 
 			try

@@ -8,15 +8,12 @@ namespace DocumentsFillerAPI.Providers
 {
 	public class BetPostgreProvider
 	{
-		private string connectionString = ConfigProvider.Get<string>("ConnectionStrings:PgSQL");
+		private static NpgsqlDataSource DataSource => StaticHelper.DataSource;
 
 		public async Task<ResultMessage> Delete(IEnumerable<Guid> bets)
 		{
 			try
 			{
-				
-				//await using var dataSource = NpgsqlDataSource.Create(connectionString);
-
 				string sql = 
 					$@"
 					UPDATE public.bet
@@ -24,7 +21,7 @@ namespace DocumentsFillerAPI.Providers
 					WHERE id IN ('{string.Join("','", bets)}')
 					";
 
-				await using (var cmd = StaticHelper.dataSource.CreateCommand(sql))
+				await using (var cmd = DataSource.CreateCommand(sql))
 				{
 					await cmd.ExecuteNonQueryAsync();
 				}
@@ -45,8 +42,7 @@ namespace DocumentsFillerAPI.Providers
 				return new ResultMessage() { Message = "Успешно", IsSuccess = true };
 			}
 
-			await using var dataSource = NpgsqlDataSource.Create(connectionString);
-			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var connection = await DataSource.OpenConnectionAsync();
 			await using var transaction = await connection.BeginTransactionAsync();
 
 			try
@@ -124,8 +120,7 @@ namespace DocumentsFillerAPI.Providers
 				return (new ResultMessage { Message = "Успешно", IsSuccess = true }, new List<UpdateBetStruct>());
 			}
 
-			await using var dataSource = NpgsqlDataSource.Create(connectionString);
-			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var connection = await DataSource.OpenConnectionAsync();
 			await using var transaction = await connection.BeginTransactionAsync();
 
 			try
@@ -206,9 +201,6 @@ namespace DocumentsFillerAPI.Providers
 		{
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-				//SELECT *, ROW_NUMBER() OVER (ORDER BY bet_id ASC, is_deleted DESC) AS row_id FROM betv2
-
 				string sql = 
 					$@"
 					SELECT bet.id,
@@ -229,9 +221,9 @@ namespace DocumentsFillerAPI.Providers
 
 				List<BetStruct> results = new List<BetStruct>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = DataSource.CreateCommand(sql))
 				{
-					var reader = await cmd.ExecuteReaderAsync();
+					await using var reader = await cmd.ExecuteReaderAsync();
 					while (await reader.ReadAsync())
 					{
 						results.Add(new BetStruct
@@ -258,9 +250,6 @@ namespace DocumentsFillerAPI.Providers
 		{
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-				//SELECT *, ROW_NUMBER() OVER (ORDER BY bet_id ASC, is_deleted DESC) AS row_id FROM betv2
-
 				string sql =
 					$@"
 					SELECT id,
@@ -277,9 +266,9 @@ namespace DocumentsFillerAPI.Providers
 
 				List<BetStruct> results = new List<BetStruct>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = DataSource.CreateCommand(sql))
 				{
-					var reader = await cmd.ExecuteReaderAsync();
+					await using var reader = await cmd.ExecuteReaderAsync();
 					while (await reader.ReadAsync())
 					{
 						results.Add(new BetStruct
@@ -311,8 +300,6 @@ namespace DocumentsFillerAPI.Providers
 					return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, new Dictionary<(Guid, Guid, bool), BetStruct>());
 				}
 
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-
 				var teacherIds = criteria.Select(c => c.TeacherID).Distinct().ToArray();
 				var departmentIds = criteria.Select(c => c.DepartmentID).Distinct().ToArray();
 				var isExcessiveValues = criteria.Select(c => c.IsExcessive).Distinct().ToArray();
@@ -332,13 +319,13 @@ namespace DocumentsFillerAPI.Providers
 
 				Dictionary<(Guid, Guid, bool), BetStruct> results = new Dictionary<(Guid, Guid, bool), BetStruct>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = DataSource.CreateCommand(sql))
 				{
 					cmd.Parameters.Add(new NpgsqlParameter("@teacher_ids", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Uuid) { Value = teacherIds });
 					cmd.Parameters.Add(new NpgsqlParameter("@department_ids", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Uuid) { Value = departmentIds });
 					cmd.Parameters.Add(new NpgsqlParameter("@is_excessive_values", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Boolean) { Value = isExcessiveValues });
 
-					var reader = await cmd.ExecuteReaderAsync();
+					await using var reader = await cmd.ExecuteReaderAsync();
 					while (await reader.ReadAsync())
 					{
 						var bet = new BetStruct

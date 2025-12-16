@@ -2,13 +2,11 @@
 
 namespace DocumentsFillerAPI.Providers
 {
-	public class StaticHelper
+	public static class StaticHelper
 	{
-		public static string connectionString = ConfigProvider.Get<string>("ConnectionStrings:PgSQL");
-		public static NpgsqlDataSource dataSource;
-		private StaticHelper()
-		{
-			dataSource = NpgsqlDataSource.Create(connectionString);
-		}
+		private static readonly string connectionString = ConfigProvider.Get<string>("ConnectionStrings:PgSQL");
+		private static readonly Lazy<NpgsqlDataSource> _dataSource = new Lazy<NpgsqlDataSource>(() => NpgsqlDataSource.Create(connectionString));
+		
+		public static NpgsqlDataSource DataSource => _dataSource.Value;
 	}
 }

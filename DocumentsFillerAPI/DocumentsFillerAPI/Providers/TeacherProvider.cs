@@ -8,7 +8,7 @@ namespace DocumentsFillerAPI.Providers
 {
 	public class TeacherProvider
 	{
-		private string connectionString = ConfigProvider.Get<string>("ConnectionStrings:PgSQL");
+		private static NpgsqlDataSource DataSource => StaticHelper.DataSource;
 
 		public async Task<(ResultMessage Message, List<DeleteTeachersRecord> DeleteResults)> Delete(IEnumerable<Guid> teachers)
 		{
@@ -18,8 +18,7 @@ namespace DocumentsFillerAPI.Providers
 				return new (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, new List<DeleteTeachersRecord>());
 			}
 
-			await using var dataSource = NpgsqlDataSource.Create(connectionString);
-			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var connection = await DataSource.OpenConnectionAsync();
 			await using var transaction = await connection.BeginTransactionAsync();
 
 			try
@@ -82,8 +81,7 @@ namespace DocumentsFillerAPI.Providers
 				return new ResultMessage { IsSuccess = true, Message = "Успешно" };
 			}
 
-			await using var dataSource = NpgsqlDataSource.Create(connectionString);
-			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var connection = await DataSource.OpenConnectionAsync();
 			await using var transaction = await connection.BeginTransactionAsync();
 
 			try
@@ -157,8 +155,7 @@ namespace DocumentsFillerAPI.Providers
 				return (new ResultMessage { Message = "Успешно", IsSuccess = true }, new List<UpdateTeacherRecord>());
 			}
 
-			await using var dataSource = NpgsqlDataSource.Create(connectionString);
-			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var connection = await DataSource.OpenConnectionAsync();
 			await using var transaction = await connection.BeginTransactionAsync();
 
 			try
@@ -236,9 +233,6 @@ namespace DocumentsFillerAPI.Providers
 		{
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-				//SELECT *, ROW_NUMBER() OVER (ORDER BY bet_id ASC, is_deleted DESC) AS row_id FROM betv2
-
 				string sql =
 					$@"
 					SELECT teacher.id,
@@ -255,15 +249,11 @@ namespace DocumentsFillerAPI.Providers
 					OFFSET {startIndex}
 					LIMIT {(count == 0 ? "NULL" : count.ToString())}";
 
-				//main_bet_id, 
-				//		   second_bet_id, 
-				//		   excessive_bet_id
-
 				List<TeacherFullInfoStruct> results = new List<TeacherFullInfoStruct>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = DataSource.CreateCommand(sql))
 				{
-					var reader = await cmd.ExecuteReaderAsync();
+					await using var reader = await cmd.ExecuteReaderAsync();
 					while (await reader.ReadAsync())
 					{
 						results.Add(new TeacherFullInfoStruct
@@ -312,9 +302,6 @@ namespace DocumentsFillerAPI.Providers
 					patronymicLetter = firstNameWithPatronymic.Length == 2 ? firstNameWithPatronymic[1].First().ToString() : "";
 				}
 
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-				//SELECT *, ROW_NUMBER() OVER (ORDER BY bet_id ASC, is_deleted DESC) AS row_id FROM betv2
-
 				string sql =
 					$@"
 					SELECT id
@@ -325,10 +312,10 @@ namespace DocumentsFillerAPI.Providers
 						  patronymic like '{patronymicLetter}%'";
 
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = DataSource.CreateCommand(sql))
 				{
 					cmd.Parameters.AddWithValue("@secondName", secondName);
-					var reader = await cmd.ExecuteReaderAsync();
+					await using var reader = await cmd.ExecuteReaderAsync();
 
 					if (await reader.ReadAsync())
 					{

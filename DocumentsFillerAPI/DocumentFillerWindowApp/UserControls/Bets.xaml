@@ -80,7 +80,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridCheckBoxColumn Binding="{Binding IsExcessive, UpdateSourceTrigger=LostFocus}" Header="Дополнительная"/>
+                <DataGridCheckBoxColumn Binding="{Binding IsExcessive, UpdateSourceTrigger=PropertyChanged}" Header="Дополнительная"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
