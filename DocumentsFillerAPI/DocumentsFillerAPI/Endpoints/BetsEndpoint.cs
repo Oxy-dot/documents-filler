@@ -42,7 +42,7 @@ namespace DocumentsFillerAPI.Endpoints
 				}).ToList() ?? new List<BetStruct>();
 
 				if (betsToInsert.Count == 0)
-					throw new Exception("Не найдены ставки для вставки");
+					throw new Exception("пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
 
 				var insertBetsResult = await _provider.Insert(betsToInsert);
 
@@ -81,7 +81,7 @@ namespace DocumentsFillerAPI.Endpoints
 				}).ToList() ?? new List<BetStruct>();
 
 				if (betsToUpdate.Count == 0)
-					throw new Exception("Не найдены ставки для обновления");
+					throw new Exception("пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
 
 				var updateBetsResult = await _provider.Update(betsToUpdate);
 
@@ -114,7 +114,7 @@ namespace DocumentsFillerAPI.Endpoints
 				var betsToDelete = jBody?["delete"]?.AsArray()?.Select(a => (Guid)a!)?.ToList() ?? new List<Guid>();
 
 				if (betsToDelete.Count == 0)
-					throw new Exception("Не найдены ставки для удаления");
+					throw new Exception("пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
 
 				var deleteBetsResult = await _provider.Delete(betsToDelete);
 
@@ -137,6 +137,7 @@ namespace DocumentsFillerAPI.Endpoints
 		}
 	}
 }
+
 
 
 

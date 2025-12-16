@@ -3,6 +3,7 @@ using DocumentsFillerAPI.Structures;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Linq;
 
 namespace DocumentsFillerAPI.Endpoints
 {
@@ -213,6 +214,11 @@ namespace DocumentsFillerAPI.Endpoints
 				if (mainBetsToUpdate.Count > 0)
 				{
 					var toUpdate = new List<BetStruct>();
+					
+					// Собираем все teacherID для поиска
+					var teacherIds = new List<Guid>();
+					var teacherNameToId = new Dictionary<string, Guid>();
+					
 					foreach (var mainBet in mainBetsToUpdate)
 					{
 						if (mainBet.MainBetHours == null || mainBet.MainBet == null)
@@ -221,18 +227,40 @@ namespace DocumentsFillerAPI.Endpoints
 						var teacherFindResult = await _provider.FindTeacherByShortName(mainBet.FullName);
 						if (teacherFindResult.Result.IsSuccess)
 						{
-							var betInfo = await _betProvider.Get(teacherFindResult.TeacherID, departmentID, true);
-							if (betInfo.Item1.IsSuccess)
+							teacherIds.Add(teacherFindResult.TeacherID);
+							teacherNameToId[mainBet.FullName] = teacherFindResult.TeacherID;
+						}
+					}
+
+					// Получаем все ставки одним запросом
+					if (teacherIds.Count > 0)
+					{
+						var criteria = teacherIds.Select(tid => (TeacherID: tid, DepartmentID: departmentID, IsExcessive: false)).ToList();
+						var betsResult = await _betProvider.GetMultiple(criteria);
+						
+						if (betsResult.Item1.IsSuccess)
+						{
+							foreach (var mainBet in mainBetsToUpdate)
 							{
-								toUpdate.Add(new BetStruct
+								if (mainBet.MainBetHours == null || mainBet.MainBet == null)
+									continue;
+
+								if (teacherNameToId.TryGetValue(mainBet.FullName, out var teacherID))
 								{
-									ID = betInfo.Item2!.ID,
-									DepartmentID = departmentID,
-									BetAmount = mainBet.MainBet!.Value,
-									HoursAmount = mainBet.MainBetHours!.Value,
-									TeacherID = teacherFindResult.TeacherID,
-									IsExcessive = false
-								});
+									var key = (teacherID, departmentID, false);
+									if (betsResult.Item2.TryGetValue(key, out var existingBet))
+									{
+										toUpdate.Add(new BetStruct
+										{
+											ID = existingBet.ID,
+											DepartmentID = departmentID,
+											BetAmount = mainBet.MainBet!.Value,
+											HoursAmount = mainBet.MainBetHours!.Value,
+											TeacherID = teacherID,
+											IsExcessive = false
+										});
+									}
+								}
 							}
 						}
 					}

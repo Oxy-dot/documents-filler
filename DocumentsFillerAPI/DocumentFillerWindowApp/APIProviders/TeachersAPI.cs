@@ -177,7 +177,16 @@ namespace DocumentFillerWindowApp.APIProviders
 					string excessiveBetsInsertResult = (string)response.Response!["excessiveBets"]!["insertMessage"]!;
 					string excessiveBetsUpdateResult = (string)response.Response!["excessiveBets"]!["updateMessage"]!;
 
-					message = $"Ошибки вставки преподавателей: {teacherInsertResult}\nОшибки вставки нормативных ставок: {mainBetsInsertResult}\nОшибки обновлений нормативных ставок: {mainBetsUpdateResult}\nОшибки вставки сверхнормативных ставок: {excessiveBetsInsertResult}\nОшибки обновления сверхнормативных ставок: {excessiveBetsUpdateResult}";
+					if (!string.IsNullOrEmpty(teacherInsertResult))
+						message += $"Итоги вставки преподавателей: {teacherInsertResult}\n";
+					if (!string.IsNullOrEmpty(mainBetsInsertResult))
+						message += $"Итоги вставки нормативных ставок: {mainBetsInsertResult}\n";
+					if (!string.IsNullOrEmpty(mainBetsUpdateResult))
+						message += $"Итоги обновления нормативных ставок: {mainBetsUpdateResult}\n";
+					if (!string.IsNullOrEmpty(excessiveBetsInsertResult))
+						message += $"Итоги вставки сверхнормативных ставок: {excessiveBetsInsertResult}\n";
+					if (!string.IsNullOrEmpty(excessiveBetsUpdateResult))
+						message += $"Итоги обновления сверхнормативных ставок: {excessiveBetsUpdateResult}\n";
 				}
 				else
 					message = responseMessage;

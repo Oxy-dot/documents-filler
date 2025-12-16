@@ -1,6 +1,8 @@
 ﻿using DocumentsFillerAPI.Controllers;
 using DocumentsFillerAPI.Structures;
 using Npgsql;
+using NpgsqlTypes;
+using System.Linq;
 
 namespace DocumentsFillerAPI.Providers
 {
@@ -91,10 +93,18 @@ namespace DocumentsFillerAPI.Providers
 
 		public async Task<(ResultMessage Message, List<UpdateBetStruct> BetsResult)> Update(IEnumerable<BetStruct> bets)
 		{
+			var betsList = bets.ToList();
+			if (betsList.Count == 0)
+			{
+				return (new ResultMessage { Message = "Успешно", IsSuccess = true }, new List<UpdateBetStruct>());
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-
 				string sql =
 					$@"
 					UPDATE public.bet
@@ -104,21 +114,34 @@ namespace DocumentsFillerAPI.Providers
 
 				List<UpdateBetStruct> results = new List<UpdateBetStruct>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
-					foreach (BetStruct bet in bets)
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var betParam = new NpgsqlParameter("@bet", NpgsqlTypes.NpgsqlDbType.Double);
+					var hoursParam = new NpgsqlParameter("@hours_amount", NpgsqlTypes.NpgsqlDbType.Integer);
+					var teacherIdParam = new NpgsqlParameter("@teacher_id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var departmentIdParam = new NpgsqlParameter("@department_id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var isExcessiveParam = new NpgsqlParameter("@is_excessive", NpgsqlTypes.NpgsqlDbType.Boolean);
+
+					cmd.Parameters.Add(idParam);
+					cmd.Parameters.Add(betParam);
+					cmd.Parameters.Add(hoursParam);
+					cmd.Parameters.Add(teacherIdParam);
+					cmd.Parameters.Add(departmentIdParam);
+					cmd.Parameters.Add(isExcessiveParam);
+
+					foreach (BetStruct bet in betsList)
 					{
 						try
 						{
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", bet.ID);
-							cmd.Parameters.AddWithValue("@bet", bet.BetAmount);
-							cmd.Parameters.AddWithValue("@hours_amount", bet.HoursAmount);
-							cmd.Parameters.AddWithValue("@teacher_id", bet.TeacherID);
-							cmd.Parameters.AddWithValue("@department_id", bet.DepartmentID);
-							cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
+							idParam.Value = bet.ID;
+							betParam.Value = bet.BetAmount;
+							hoursParam.Value = bet.HoursAmount;
+							teacherIdParam.Value = bet.TeacherID;
+							departmentIdParam.Value = bet.DepartmentID;
+							isExcessiveParam.Value = bet.IsExcessive;
 
-							int cnt = cmd.ExecuteNonQuery();
+							int cnt = await cmd.ExecuteNonQueryAsync();
 							if (cnt != 1)
 								throw new Exception($"Строка с ИД={bet.ID} не была обновлена");
 
@@ -131,16 +154,19 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
+				await transaction.CommitAsync();
+
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results)}",
-					IsSuccess = results.Count == 0,
+					Message = results.Count(a => !a.IsSuccess) == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results.Where(r => !r.IsSuccess).Select(r => r.Message))}",
+					IsSuccess = results.Count(a => !a.IsSuccess) == 0,
 				};
 
 				return (message, results);
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				ResultMessage message = new ResultMessage
 				{
 					Message = ex.Message,
@@ -248,6 +274,71 @@ namespace DocumentsFillerAPI.Providers
 			catch (Exception ex)
 			{
 				return (new ResultMessage() { IsSuccess = false, Message = ex.Message }, default);
+			}
+		}
+
+		public async Task<(ResultMessage, Dictionary<(Guid TeacherID, Guid DepartmentID, bool IsExcessive), BetStruct>)> GetMultiple(List<(Guid TeacherID, Guid DepartmentID, bool IsExcessive)> criteria)
+		{
+			try
+			{
+				if (criteria == null || criteria.Count == 0)
+				{
+					return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, new Dictionary<(Guid, Guid, bool), BetStruct>());
+				}
+
+				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+
+				var teacherIds = criteria.Select(c => c.TeacherID).Distinct().ToArray();
+				var departmentIds = criteria.Select(c => c.DepartmentID).Distinct().ToArray();
+				var isExcessiveValues = criteria.Select(c => c.IsExcessive).Distinct().ToArray();
+
+				string sql = @"
+					SELECT id,
+						   bet,
+						   hours_amount,
+						   teacher_id,
+						   department_id,
+						   is_excessive
+					FROM public.bet
+					WHERE teacher_id = ANY(@teacher_ids) AND
+						  department_id = ANY(@department_ids) AND
+						  is_excessive = ANY(@is_excessive_values) AND
+						  is_deleted = False";
+
+				Dictionary<(Guid, Guid, bool), BetStruct> results = new Dictionary<(Guid, Guid, bool), BetStruct>();
+
+				await using (var cmd = dataSource.CreateCommand(sql))
+				{
+					cmd.Parameters.Add(new NpgsqlParameter("@teacher_ids", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Uuid) { Value = teacherIds });
+					cmd.Parameters.Add(new NpgsqlParameter("@department_ids", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Uuid) { Value = departmentIds });
+					cmd.Parameters.Add(new NpgsqlParameter("@is_excessive_values", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Boolean) { Value = isExcessiveValues });
+
+					var reader = await cmd.ExecuteReaderAsync();
+					while (await reader.ReadAsync())
+					{
+						var bet = new BetStruct
+						{
+							ID = reader.GetGuid(0),
+							BetAmount = reader.GetDouble(1),
+							HoursAmount = reader.GetInt32(2),
+							TeacherID = reader.IsDBNull(3) ? Guid.Empty : reader.GetGuid(3),
+							DepartmentID = reader.IsDBNull(4) ? Guid.Empty : reader.GetGuid(4),
+							IsExcessive = reader.IsDBNull(5) ? false : reader.GetBoolean(5),
+						};
+
+						var key = (bet.TeacherID, bet.DepartmentID, bet.IsExcessive);
+						if (!results.ContainsKey(key))
+						{
+							results[key] = bet;
+						}
+					}
+				}
+
+				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results);
+			}
+			catch (Exception ex)
+			{
+				return (new ResultMessage() { IsSuccess = false, Message = ex.Message }, new Dictionary<(Guid, Guid, bool), BetStruct>());
 			}
 		}
 
