@@ -221,14 +221,19 @@ namespace DocumentsFillerAPI.Endpoints
 						var teacherFindResult = await _provider.FindTeacherByShortName(mainBet.FullName);
 						if (teacherFindResult.Result.IsSuccess)
 						{
-							toUpdate.Add(new BetStruct
+							var betInfo = await _betProvider.Get(teacherFindResult.TeacherID, departmentID, true);
+							if (betInfo.Item1.IsSuccess)
 							{
-								DepartmentID = departmentID,
-								BetAmount = mainBet.MainBet!.Value,
-								HoursAmount = mainBet.MainBetHours.Value,
-								TeacherID = teacherFindResult.TeacherID,
-								IsExcessive = false
-							});
+								toUpdate.Add(new BetStruct
+								{
+									ID = betInfo.Item2!.ID,
+									DepartmentID = departmentID,
+									BetAmount = mainBet.MainBet!.Value,
+									HoursAmount = mainBet.MainBetHours!.Value,
+									TeacherID = teacherFindResult.TeacherID,
+									IsExcessive = false
+								});
+							}
 						}
 					}
 
@@ -283,14 +288,19 @@ namespace DocumentsFillerAPI.Endpoints
 						var teacherFindResult = await _provider.FindTeacherByShortName(excessiveBet.FullName);
 						if (teacherFindResult.Result.IsSuccess)
 						{
-							toUpdate.Add(new BetStruct
+							var betInfo = await _betProvider.Get(teacherFindResult.TeacherID, departmentID, true);
+							if (betInfo.Item1.IsSuccess)
 							{
-								DepartmentID = departmentID,
-								BetAmount = excessiveBet.ExcessiveBet!.Value,
-								HoursAmount = excessiveBet.ExcessiveBetHours!.Value,
-								TeacherID = teacherFindResult.TeacherID,
-								IsExcessive = true
-							});
+								toUpdate.Add(new BetStruct
+								{
+									ID = betInfo.Item2!.ID,
+									DepartmentID = departmentID,
+									BetAmount = excessiveBet.ExcessiveBet!.Value,
+									HoursAmount = excessiveBet.ExcessiveBetHours!.Value,
+									TeacherID = teacherFindResult.TeacherID,
+									IsExcessive = true
+								});
+							}
 						}
 					}
 

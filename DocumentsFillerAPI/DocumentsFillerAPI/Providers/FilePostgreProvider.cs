@@ -44,7 +44,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return (new ResultMessage() { IsSuccess = true, Message = "Success" }, files);
+				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, files);
 			}
 			catch (Exception ex)
 			{
@@ -96,7 +96,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 					catch (Exception ex)
 					{
-						notInsertedFiles.Add($"Row with path={file.Path} wasnt created, error: {ex.Message}");
+						notInsertedFiles.Add($"Строка с путем={file.Path} не была создана, ошибка: {ex.Message}");
 					}
 				}
 
@@ -152,7 +152,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return new (new ResultMessage() { Message = deleteResults.Count == 0 ? "Success" : "Success with errors" }, deleteResults);
+				return new (new ResultMessage() { Message = deleteResults.Count == 0 ? "Успешно" : "Успешно, но с ошибками" }, deleteResults);
 			}
 			catch (Exception ex)
 			{

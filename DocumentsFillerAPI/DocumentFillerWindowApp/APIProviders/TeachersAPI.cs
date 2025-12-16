@@ -31,8 +31,8 @@ namespace DocumentFillerWindowApp.APIProviders
 					}
 					//Name = (string)a["Name"]!
 				}).ToList();
-
-				return ("", teachers);
+				
+				return ((string)response.Response["message"]!, teachers);
 			}
 			catch (Exception ex)
 			{

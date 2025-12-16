@@ -1,10 +1,5 @@
 ﻿using DocumentFillerWindowApp.UserModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 
 namespace DocumentFillerWindowApp.APIProviders
 {
@@ -30,7 +25,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					FullName = a["FullName"] != null ? (string)a["FullName"]! : ""
 				}).ToList();
 
-				return ("", departments);
+				return ((string)response.Response["message"]!, departments);
 			}
 			catch (Exception ex)
 			{

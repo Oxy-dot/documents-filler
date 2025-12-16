@@ -37,7 +37,7 @@ namespace DocumentFillerWindowApp.UserModels
 			var teachersResult = await _teachersAPI.GetFullInfo();
 			var departmentsResult = await _departmentsAPI.Get();
 
-			if (!string.IsNullOrEmpty(teachersResult.Message))
+			if (teachersResult.Message != "Успешно")
 			{
 				MessageBox.Show(teachersResult.Message, "Ошибка загрузки преподавателей", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
@@ -47,7 +47,7 @@ namespace DocumentFillerWindowApp.UserModels
 				OnPropertyChanged("Teachers");
 			}
 
-			if (!string.IsNullOrEmpty(departmentsResult.Message))
+			if (departmentsResult.Message != "Успешно")
 			{
 				MessageBox.Show(departmentsResult.Message, "Ошибка загрузки кафедр", MessageBoxButton.OK, MessageBoxImage.Error);
 			}

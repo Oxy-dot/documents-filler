@@ -8,8 +8,7 @@ namespace DocumentFillerWindowApp.APIProviders
 	internal static class StaticHttpClient
 	{
 		private readonly static string ACCESS_TOKEN = Properties.Settings.Default.AccessToken;
-		//TODO Insert into cfg maybe
-		private readonly static string SERVER_URL = Properties.Settings.Default.ServerAddress;
+		private readonly static string SERVER_URL = (string)JsonNode.Parse(ConfigProvider.GetFile()!)["serverIP"]! + "/api";
 		private static HttpClient _httpClient = new HttpClient();
 
 		static StaticHttpClient()
@@ -34,7 +33,6 @@ namespace DocumentFillerWindowApp.APIProviders
 				if (!result.IsSuccessStatusCode)
 					return new(default, $"StatusCode: {result.StatusCode}; Message: {resultString}", false);
 
-				//TODO Скорее всего сломается, но похуй
 				return new((T)JsonNode.Parse(resultString), "Success", true);
 			}
 			catch (Exception ex)

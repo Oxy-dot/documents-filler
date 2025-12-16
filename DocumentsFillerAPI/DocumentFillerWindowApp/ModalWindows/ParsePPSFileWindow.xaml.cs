@@ -1,12 +1,8 @@
 using DocumentFillerWindowApp.APIProviders;
 using DocumentFillerWindowApp.UserModels;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.Win32;
+using System.IO;
+using System.Windows;
 
 namespace DocumentFillerWindowApp.ModalWindows
 {
@@ -32,7 +28,7 @@ namespace DocumentFillerWindowApp.ModalWindows
 			try
 			{
 				var result = await _departmentsAPI.Get();
-				if (!string.IsNullOrEmpty(result.Message))
+				if (result.Message != "Успешно")
 				{
 					MessageBox.Show($"Ошибка при загрузке кафедр: {result.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 					return;
@@ -78,7 +74,7 @@ namespace DocumentFillerWindowApp.ModalWindows
 
 				var result = await _filesAPI.ParsePPSExcelFile(_selectedFilePath);
 
-				if (!string.IsNullOrEmpty(result.Message))
+				if (result.Message != "Успешно")
 				{
 					MessageBox.Show($"Ошибки при парсинге:\n{result.Message}", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
 				}

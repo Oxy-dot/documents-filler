@@ -22,7 +22,7 @@ namespace DocumentFillerWindowApp.UserModels
 		private async void UpdateFilesFromAPI()
 		{
 			var filesResult = await _filesAPI.Get();
-			if (!string.IsNullOrEmpty(filesResult.Message))
+			if (filesResult.Message != "Успешно")
 			{
 				MessageBox.Show(filesResult.Message, "Ошибка загрузки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 				return;

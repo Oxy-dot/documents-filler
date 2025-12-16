@@ -284,7 +284,7 @@ namespace DocumentFillerWindowApp.APIProviders
 					FileType = (string)a["FileType"]!
 				}).ToList();
 
-				return ("", files);
+				return ((string)response.Response["message"]!, files);
 			}
 			catch (Exception ex)
 			{

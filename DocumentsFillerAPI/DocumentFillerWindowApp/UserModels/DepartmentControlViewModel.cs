@@ -1,14 +1,8 @@
 ﻿using DocumentFillerWindowApp.APIProviders;
-using DocumentFillerWindowApp.UserControls;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace DocumentFillerWindowApp.UserModels
@@ -72,7 +66,7 @@ namespace DocumentFillerWindowApp.UserModels
 		public async Task InsertDepartments(List<DepartmentRecord> departments)
 		{
 			var result = await _departmentAPI.InsertDepartments(departments);
-			if (!string.IsNullOrEmpty(result))
+			if (result != "Успешно")
 			{
 				MessageBox.Show(result, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 			}

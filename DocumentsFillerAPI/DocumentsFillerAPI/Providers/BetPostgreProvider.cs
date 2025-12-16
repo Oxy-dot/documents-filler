@@ -12,7 +12,8 @@ namespace DocumentsFillerAPI.Providers
 		{
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
+				
+				//await using var dataSource = NpgsqlDataSource.Create(connectionString);
 
 				string sql = 
 					$@"
@@ -21,9 +22,9 @@ namespace DocumentsFillerAPI.Providers
 					WHERE id IN ('{string.Join("','", bets)}')
 					";
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = StaticHelper.dataSource.CreateCommand(sql))
 				{
-					cmd.ExecuteNonQuery();
+					await cmd.ExecuteNonQueryAsync();
 				}
 
 				return new ResultMessage() { IsSuccess = true, Message = "Успешно" };
