@@ -31,8 +31,8 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					var reader = cmd.ExecuteReader();
-					while (reader.Read())
+					var reader = await cmd.ExecuteReaderAsync();
+					while (await reader.ReadAsync())
 					{
 						files.Add(new FileForListStruct
 						{
@@ -54,11 +54,17 @@ namespace DocumentsFillerAPI.Providers
 
 		public async Task<(ResultMessage Message, List<MinimalFileInfoStruct> InsertedFiles, List<string> NotInsertedFiles)> InsertFiles(List<FileStruct> filesToInsert)
 		{
+			if (filesToInsert == null || filesToInsert.Count == 0)
+			{
+				return new (new ResultMessage() { Message = "Success", IsSuccess = true }, new(), new());
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-				//SET id =?, file_name =?, creation_date =?, content =?, type_id =?, is_deleted =?
-
 				string sql =
 					$@"
 					INSERT INTO public.file(id, creation_date, type_id, path)
@@ -68,18 +74,27 @@ namespace DocumentsFillerAPI.Providers
 				List<MinimalFileInfoStruct> insertedFiles = new List<MinimalFileInfoStruct>();
 				List<string> notInsertedFiles = new List<string>();
 
-				foreach (FileStruct file in filesToInsert)
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
-					try
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var dateParam = new NpgsqlParameter("@date", NpgsqlTypes.NpgsqlDbType.Timestamp);
+					var typeIdParam = new NpgsqlParameter("@typeId", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var pathParam = new NpgsqlParameter("@path", NpgsqlTypes.NpgsqlDbType.Text);
+
+					cmd.Parameters.Add(idParam);
+					cmd.Parameters.Add(dateParam);
+					cmd.Parameters.Add(typeIdParam);
+					cmd.Parameters.Add(pathParam);
+
+					foreach (FileStruct file in filesToInsert)
 					{
-						await using (var cmd = dataSource.CreateCommand(sql))
+						try
 						{
 							var fileId = Guid.NewGuid();
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", fileId);
-							cmd.Parameters.AddWithValue("@date", file.CreationDate);
-							cmd.Parameters.AddWithValue("@typeId", file.FileType);
-							cmd.Parameters.AddWithValue("@path", file.Path);
+							idParam.Value = fileId;
+							dateParam.Value = file.CreationDate;
+							typeIdParam.Value = file.FileType;
+							pathParam.Value = file.Path;
 
 							await using (var reader = await cmd.ExecuteReaderAsync())
 							{
@@ -93,27 +108,37 @@ namespace DocumentsFillerAPI.Providers
 								}
 							}
 						}
-					}
-					catch (Exception ex)
-					{
-						notInsertedFiles.Add($"Строка с путем={file.Path} не была создана, ошибка: {ex.Message}");
+						catch (Exception ex)
+						{
+							notInsertedFiles.Add($"Строка с путем={file.Path} не была создана, ошибка: {ex.Message}");
+						}
 					}
 				}
+
+				await transaction.CommitAsync();
 
 				return new (new ResultMessage() { Message = "Success", IsSuccess = true }, insertedFiles, notInsertedFiles);
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				return new (new ResultMessage() { Message = ex.Message, IsSuccess = false }, new(), new());
 			}
 		}
 
 		public async Task<(ResultMessage Message, List<DeleteFilesStruct> DeleteResults)> DeleteFiles(List<Guid> files)
 		{
+			if (files == null || files.Count == 0)
+			{
+				return new (new ResultMessage() { Message = "Успешно", IsSuccess = true }, new List<DeleteFilesStruct>());
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-
 				string sql =
 				$@"
 					UPDATE public.files
@@ -123,16 +148,21 @@ namespace DocumentsFillerAPI.Providers
 
 				List<DeleteFilesStruct> deleteResults = new List<DeleteFilesStruct>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					cmd.Parameters.Add(idParam);
+
 					foreach (Guid fileID in files)
 					{
 						try
 						{
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", fileID);
+							idParam.Value = fileID;
 
-							var reader = cmd.ExecuteReader();
+							int cnt = await cmd.ExecuteNonQueryAsync();
+							if (cnt != 1)
+								throw new Exception($"Строка с ИД={fileID} не была обновлена");
+
 							deleteResults.Add(new DeleteFilesStruct
 							{
 								FileID = fileID,
@@ -152,10 +182,13 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return new (new ResultMessage() { Message = deleteResults.Count == 0 ? "Успешно" : "Успешно, но с ошибками" }, deleteResults);
+				await transaction.CommitAsync();
+
+				return new (new ResultMessage() { Message = deleteResults.Count(a => !a.IsSuccess) == 0 ? "Успешно" : "Успешно, но с ошибками", IsSuccess = true }, deleteResults);
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				return new(new ResultMessage() { Message = ex.Message, IsSuccess = false }, new List<DeleteFilesStruct>());
 			}
 		}

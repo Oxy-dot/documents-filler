@@ -303,31 +303,58 @@ namespace DocumentsFillerAPI.Endpoints
 					}
 				}
 
-				//Update excessive bets
+				//Update main bets
 				var excessiveBetsToUpdate = teachersBetsToUpdate.Where(a => a.ExcessiveBet != null && a.ExcessiveBetHours != null).ToList();
-				if (excessiveBetsToUpdate.Count > 0)
+				if (mainBetsToUpdate.Count > 0)
 				{
 					var toUpdate = new List<BetStruct>();
-					foreach (var excessiveBet in excessiveBetsToUpdate)
+
+					// Собираем все teacherID для поиска
+					var teacherIds = new List<Guid>();
+					var teacherNameToId = new Dictionary<string, Guid>();
+
+					foreach (var mainBet in mainBetsToUpdate)
 					{
-						if (excessiveBet.ExcessiveBetHours == null || excessiveBet.ExcessiveBet == null)
+						if (mainBet.MainBetHours == null || mainBet.MainBet == null)
 							continue;
 
-						var teacherFindResult = await _provider.FindTeacherByShortName(excessiveBet.FullName);
+						var teacherFindResult = await _provider.FindTeacherByShortName(mainBet.FullName);
 						if (teacherFindResult.Result.IsSuccess)
 						{
-							var betInfo = await _betProvider.Get(teacherFindResult.TeacherID, departmentID, true);
-							if (betInfo.Item1.IsSuccess)
+							teacherIds.Add(teacherFindResult.TeacherID);
+							teacherNameToId[mainBet.FullName] = teacherFindResult.TeacherID;
+						}
+					}
+
+					// Получаем все ставки одним запросом
+					if (teacherIds.Count > 0)
+					{
+						var criteria = teacherIds.Select(tid => (TeacherID: tid, DepartmentID: departmentID, IsExcessive: true)).ToList();
+						var betsResult = await _betProvider.GetMultiple(criteria);
+
+						if (betsResult.Item1.IsSuccess)
+						{
+							foreach (var mainBet in mainBetsToUpdate)
 							{
-								toUpdate.Add(new BetStruct
+								if (mainBet.MainBetHours == null || mainBet.MainBet == null)
+									continue;
+
+								if (teacherNameToId.TryGetValue(mainBet.FullName, out var teacherID))
 								{
-									ID = betInfo.Item2!.ID,
-									DepartmentID = departmentID,
-									BetAmount = excessiveBet.ExcessiveBet!.Value,
-									HoursAmount = excessiveBet.ExcessiveBetHours!.Value,
-									TeacherID = teacherFindResult.TeacherID,
-									IsExcessive = true
-								});
+									var key = (teacherID, departmentID, false);
+									if (betsResult.Item2.TryGetValue(key, out var existingBet))
+									{
+										toUpdate.Add(new BetStruct
+										{
+											ID = existingBet.ID,
+											DepartmentID = departmentID,
+											BetAmount = mainBet.MainBet!.Value,
+											HoursAmount = mainBet.MainBetHours!.Value,
+											TeacherID = teacherID,
+											IsExcessive = true
+										});
+									}
+								}
 							}
 						}
 					}
@@ -335,10 +362,47 @@ namespace DocumentsFillerAPI.Endpoints
 					if (toUpdate.Count > 0)
 					{
 						var updateResult = await _betProvider.Update(toUpdate);
-						updatedExcessiveBets = updateResult.BetsResult;
-						updateExcessiveBetMessage = updateResult.Message.Message;
+						updatedMainBets = updateResult.BetsResult;
+						updateMainBetMessage = updateResult.Message.Message;
 					}
 				}
+
+				////Update excessive bets
+				//var excessiveBetsToUpdate = teachersBetsToUpdate.Where(a => a.ExcessiveBet != null && a.ExcessiveBetHours != null).ToList();
+				//if (excessiveBetsToUpdate.Count > 0)
+				//{
+				//	var toUpdate = new List<BetStruct>();
+				//	foreach (var excessiveBet in excessiveBetsToUpdate)
+				//	{
+				//		if (excessiveBet.ExcessiveBetHours == null || excessiveBet.ExcessiveBet == null)
+				//			continue;
+
+				//		var teacherFindResult = await _provider.FindTeacherByShortName(excessiveBet.FullName);
+				//		if (teacherFindResult.Result.IsSuccess)
+				//		{
+				//			var betInfo = await _betProvider.Get(teacherFindResult.TeacherID, departmentID, true);
+				//			if (betInfo.Item1.IsSuccess && betInfo.Item2 != null)
+				//			{
+				//				toUpdate.Add(new BetStruct
+				//				{
+				//					ID = betInfo.Item2!.ID,
+				//					DepartmentID = departmentID,
+				//					BetAmount = excessiveBet.ExcessiveBet!.Value,
+				//					HoursAmount = excessiveBet.ExcessiveBetHours!.Value,
+				//					TeacherID = teacherFindResult.TeacherID,
+				//					IsExcessive = true
+				//				});
+				//			}
+				//		}
+				//	}
+
+				//	if (toUpdate.Count > 0)
+				//	{
+				//		var updateResult = await _betProvider.Update(toUpdate);
+				//		updatedExcessiveBets = updateResult.BetsResult;
+				//		updateExcessiveBetMessage = updateResult.Message.Message;
+				//	}
+				//}
 
 				//Insert excessive bets
 				var excessiveBetsToInsert = teachersBetsToInsert.Where(a => a.ExcessiveBetHours != null && a.ExcessiveBet != null).ToList();

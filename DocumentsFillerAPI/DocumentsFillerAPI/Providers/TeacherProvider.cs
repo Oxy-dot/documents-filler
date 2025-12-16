@@ -2,6 +2,7 @@
 using DocumentsFillerAPI.Structures;
 using Npgsql;
 using NpgsqlTypes;
+using System.Linq;
 
 namespace DocumentsFillerAPI.Providers
 {
@@ -11,10 +12,18 @@ namespace DocumentsFillerAPI.Providers
 
 		public async Task<(ResultMessage Message, List<DeleteTeachersRecord> DeleteResults)> Delete(IEnumerable<Guid> teachers)
 		{
+			var teachersList = teachers.ToList();
+			if (teachersList.Count == 0)
+			{
+				return new (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, new List<DeleteTeachersRecord>());
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-				//IN('{string.Join("', '", teachers)}')
 				string sql =
 					$@"
 					UPDATE public.teacher
@@ -24,16 +33,18 @@ namespace DocumentsFillerAPI.Providers
 
 				List<DeleteTeachersRecord> deleteResults = new List<DeleteTeachersRecord>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
-					foreach (Guid teacherID in teachers)
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					cmd.Parameters.Add(idParam);
+
+					foreach (Guid teacherID in teachersList)
 					{
 						try
 						{
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", teacherID);
+							idParam.Value = teacherID;
 
-							int cnt = cmd.ExecuteNonQuery();
+							int cnt = await cmd.ExecuteNonQueryAsync();
 							if (cnt != 1)
 								throw new Exception($"Строка с ИД={teacherID} не была добавлена");
 
@@ -46,6 +57,8 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
+				await transaction.CommitAsync();
+
 				ResultMessage message = new ResultMessage
 				{
 					Message = deleteResults.Count(a => !a.IsSuccess) == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", deleteResults)}",
@@ -56,15 +69,25 @@ namespace DocumentsFillerAPI.Providers
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				return new (new ResultMessage() { IsSuccess = false, Message = ex.Message }, new List<DeleteTeachersRecord>());
 			}
 		}
 
 		public async Task<ResultMessage> Insert(IEnumerable<TeacherFullInfoStruct> teachers)
 		{
+			var teachersList = teachers.ToList();
+			if (teachersList.Count == 0)
+			{
+				return new ResultMessage { IsSuccess = true, Message = "Успешно" };
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
 				List<string> errors = new List<string>();
 
 				string sql =
@@ -73,21 +96,31 @@ namespace DocumentsFillerAPI.Providers
 					VALUES (@id, @firstName, @secondName, @patronymic, @academicTitle);
 					";
 
-
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
-					foreach (TeacherFullInfoStruct teacher in teachers)
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var firstNameParam = new NpgsqlParameter("@firstName", NpgsqlTypes.NpgsqlDbType.Text);
+					var secondNameParam = new NpgsqlParameter("@secondName", NpgsqlTypes.NpgsqlDbType.Text);
+					var patronymicParam = new NpgsqlParameter("@patronymic", NpgsqlTypes.NpgsqlDbType.Text);
+					var academicTitleParam = new NpgsqlParameter("@academicTitle", NpgsqlTypes.NpgsqlDbType.Uuid);
+
+					cmd.Parameters.Add(idParam);
+					cmd.Parameters.Add(firstNameParam);
+					cmd.Parameters.Add(secondNameParam);
+					cmd.Parameters.Add(patronymicParam);
+					cmd.Parameters.Add(academicTitleParam);
+
+					foreach (TeacherFullInfoStruct teacher in teachersList)
 					{
 						try
 						{
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
-							cmd.Parameters.AddWithValue("@firstName", teacher.FirstName);
-							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
-							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
-							cmd.Parameters.AddWithValue("@academicTitle", NpgsqlTypes.NpgsqlDbType.Uuid, (object)teacher.AcademicTitle?.ID ?? DBNull.Value);
+							idParam.Value = Guid.NewGuid();
+							firstNameParam.Value = teacher.FirstName;
+							secondNameParam.Value = teacher.SecondName;
+							patronymicParam.Value = teacher.Patronymic;
+							academicTitleParam.Value = (object)teacher.AcademicTitle?.ID ?? DBNull.Value;
 
-							int cnt = cmd.ExecuteNonQuery();
+							int cnt = await cmd.ExecuteNonQueryAsync();
 							if (cnt != 1)
 								throw new Exception($"Строка с именем: {teacher.FirstName}, фамилией: {teacher.SecondName}, отчеством: {teacher.Patronymic}");
 						}
@@ -98,12 +131,15 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
+				await transaction.CommitAsync();
+
 				string message = errors.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", errors)}";
 
 				return new ResultMessage { IsSuccess = true, Message = message };
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				return new ResultMessage { IsSuccess = false, Message = ex.Message };
 			}
 		}
@@ -115,10 +151,18 @@ namespace DocumentsFillerAPI.Providers
 
 		public async Task<(ResultMessage Message, List<UpdateTeacherRecord> TeachersResult)> Update(IEnumerable<TeacherFullInfoStruct> teachers)
 		{
+			var teachersList = teachers.ToList();
+			if (teachersList.Count == 0)
+			{
+				return (new ResultMessage { Message = "Успешно", IsSuccess = true }, new List<UpdateTeacherRecord>());
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-
 				string sql =
 					$@"
 					UPDATE public.teacher
@@ -128,20 +172,31 @@ namespace DocumentsFillerAPI.Providers
 
 				List<UpdateTeacherRecord> results = new List<UpdateTeacherRecord>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
-					foreach (TeacherFullInfoStruct teacher in teachers)
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var firstNameParam = new NpgsqlParameter("@firstName", NpgsqlTypes.NpgsqlDbType.Text);
+					var secondNameParam = new NpgsqlParameter("@secondName", NpgsqlTypes.NpgsqlDbType.Text);
+					var patronymicParam = new NpgsqlParameter("@patronymic", NpgsqlTypes.NpgsqlDbType.Text);
+					var academicTitleParam = new NpgsqlParameter("@academicTitle", NpgsqlTypes.NpgsqlDbType.Uuid);
+
+					cmd.Parameters.Add(idParam);
+					cmd.Parameters.Add(firstNameParam);
+					cmd.Parameters.Add(secondNameParam);
+					cmd.Parameters.Add(patronymicParam);
+					cmd.Parameters.Add(academicTitleParam);
+
+					foreach (TeacherFullInfoStruct teacher in teachersList)
 					{
 						try
 						{
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", teacher.ID);
-							cmd.Parameters.AddWithValue("@firstName", teacher.FirstName);
-							cmd.Parameters.AddWithValue("@secondName", teacher.SecondName);
-							cmd.Parameters.AddWithValue("@patronymic", teacher.Patronymic);
-							cmd.Parameters.AddWithValue("@academicTitle", NpgsqlDbType.Uuid, (object)teacher.AcademicTitle?.ID ?? DBNull.Value);
+							idParam.Value = teacher.ID;
+							firstNameParam.Value = teacher.FirstName;
+							secondNameParam.Value = teacher.SecondName;
+							patronymicParam.Value = teacher.Patronymic;
+							academicTitleParam.Value = (object)teacher.AcademicTitle?.ID ?? DBNull.Value;
 
-							int cnt = cmd.ExecuteNonQuery();
+							int cnt = await cmd.ExecuteNonQueryAsync();
 							if (cnt != 1)
 								throw new Exception($"Строка с ИД={teacher.ID} не была обновлена");
 
@@ -154,16 +209,19 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
+				await transaction.CommitAsync();
+
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results)}",
-					IsSuccess = results.Count == 0,
+					Message = results.Count(a => !a.IsSuccess) == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results.Where(r => !r.IsSuccess).Select(r => r.Message))}",
+					IsSuccess = results.Count(a => !a.IsSuccess) == 0,
 				};
 
 				return (message, results);
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				ResultMessage message = new ResultMessage
 				{
 					Message = ex.Message,
@@ -205,8 +263,8 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					var reader = cmd.ExecuteReader();
-					while (reader.Read())
+					var reader = await cmd.ExecuteReaderAsync();
+					while (await reader.ReadAsync())
 					{
 						results.Add(new TeacherFullInfoStruct
 						{
@@ -270,10 +328,13 @@ namespace DocumentsFillerAPI.Providers
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
 					cmd.Parameters.AddWithValue("@secondName", secondName);
-					var reader = cmd.ExecuteReader();
+					var reader = await cmd.ExecuteReaderAsync();
 
-					reader.Read();
-					return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, reader.GetGuid(0));
+					if (await reader.ReadAsync())
+					{
+						return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, reader.GetGuid(0));
+					}
+					return (new ResultMessage() { IsSuccess = false, Message = "Преподаватель не найден" }, default);
 				}
 			}
 			catch (Exception ex)

@@ -1,6 +1,8 @@
 ﻿using DocumentsFillerAPI.Controllers;
 using DocumentsFillerAPI.Structures;
 using Npgsql;
+using NpgsqlTypes;
+using System.Linq;
 
 namespace DocumentsFillerAPI.Providers
 {
@@ -10,10 +12,17 @@ namespace DocumentsFillerAPI.Providers
 
 		public async Task<(ResultMessage Message, List<DeleteDepartmentStruct> Results)> Delete(List<Guid> departmentIDs)
 		{
+			if (departmentIDs == null || departmentIDs.Count == 0)
+			{
+				return new(new ResultMessage() { IsSuccess = true, Message = "Успешно" }, new());
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-
 				string sql =
 					$@"
 					UPDATE public.department
@@ -23,16 +32,18 @@ namespace DocumentsFillerAPI.Providers
 
 				List<DeleteDepartmentStruct> results = new List<DeleteDepartmentStruct>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					cmd.Parameters.Add(idParam);
+
 					foreach (Guid departmentID in departmentIDs)
 					{
 						try
 						{
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", departmentID);
+							idParam.Value = departmentID;
 
-							int cnt = cmd.ExecuteNonQuery();
+							int cnt = await cmd.ExecuteNonQueryAsync();
 							if (cnt != 1)
 								throw new Exception($"Строка с ИД={departmentID} не была обновлена");
 
@@ -45,6 +56,8 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
+				await transaction.CommitAsync();
+
 				ResultMessage message = new ResultMessage
 				{
 					Message = results.Count(a => !a.IsSuccess) == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results)}",
@@ -55,6 +68,7 @@ namespace DocumentsFillerAPI.Providers
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				ResultMessage message = new ResultMessage
 				{
 					Message = ex.Message,
@@ -67,9 +81,18 @@ namespace DocumentsFillerAPI.Providers
 
 		public async Task<ResultMessage> Insert(IEnumerable<DepartmentStruct> departments)
 		{
+			var departmentsList = departments.ToList();
+			if (departmentsList.Count == 0)
+			{
+				return new ResultMessage() { IsSuccess = true, Message = "Успешно" };
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
 				List<string> errors = new List<string>();
 
 				string sql =
@@ -78,18 +101,25 @@ namespace DocumentsFillerAPI.Providers
 					VALUES (@id, @name, @fullName);
 					";
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
-					foreach (DepartmentStruct department in departments)
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var nameParam = new NpgsqlParameter("@name", NpgsqlTypes.NpgsqlDbType.Text);
+					var fullNameParam = new NpgsqlParameter("@fullName", NpgsqlTypes.NpgsqlDbType.Text);
+
+					cmd.Parameters.Add(idParam);
+					cmd.Parameters.Add(nameParam);
+					cmd.Parameters.Add(fullNameParam);
+
+					foreach (DepartmentStruct department in departmentsList)
 					{
 						try
 						{
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
-							cmd.Parameters.AddWithValue("@name", department.Name);
-							cmd.Parameters.AddWithValue("@fullName", department.FullName ?? (object)DBNull.Value);
+							idParam.Value = Guid.NewGuid();
+							nameParam.Value = department.Name;
+							fullNameParam.Value = department.FullName ?? (object)DBNull.Value;
 
-							int cnt = cmd.ExecuteNonQuery();
+							int cnt = await cmd.ExecuteNonQueryAsync();
 							if (cnt != 1)
 								throw new Exception($"Строка с именем={department.Name} не была добавлена");
 						}
@@ -100,12 +130,15 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
+				await transaction.CommitAsync();
+
 				string message = errors.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", errors)}";
 
 				return new ResultMessage() { IsSuccess = true, Message = message };
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				return new ResultMessage() { Message = ex.Message };
 			}
 		}
@@ -132,8 +165,8 @@ namespace DocumentsFillerAPI.Providers
 					cmd.Parameters.Clear();
 					cmd.Parameters.AddWithValue("@seachText", searchText);
 
-					var reader = cmd.ExecuteReader();
-					while (reader.Read())
+					var reader = await cmd.ExecuteReaderAsync();
+					while (await reader.ReadAsync())
 					{
 						results.Add(new DepartmentStruct
 						{
@@ -154,10 +187,18 @@ namespace DocumentsFillerAPI.Providers
 
 		public async Task<(ResultMessage Message, List<UpdateDepartmentStruct> DepartmentsResults)> Update(IEnumerable<DepartmentStruct> departments)
 		{
+			var departmentsList = departments.ToList();
+			if (departmentsList.Count == 0)
+			{
+				return (new ResultMessage { Message = "Успешно", IsSuccess = true }, new List<UpdateDepartmentStruct>());
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
-
 				string sql =
 					$@"
 					UPDATE public.department
@@ -167,18 +208,25 @@ namespace DocumentsFillerAPI.Providers
 
 				List<UpdateDepartmentStruct> results = new List<UpdateDepartmentStruct>();
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
-					foreach (DepartmentStruct department in departments)
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var nameParam = new NpgsqlParameter("@name", NpgsqlTypes.NpgsqlDbType.Text);
+					var fullNameParam = new NpgsqlParameter("@fullName", NpgsqlTypes.NpgsqlDbType.Text);
+
+					cmd.Parameters.Add(idParam);
+					cmd.Parameters.Add(nameParam);
+					cmd.Parameters.Add(fullNameParam);
+
+					foreach (DepartmentStruct department in departmentsList)
 					{
 						try
 						{
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", department.ID);
-							cmd.Parameters.AddWithValue("@name", department.Name);
-							cmd.Parameters.AddWithValue("@fullName", department.FullName ?? (object)DBNull.Value);
+							idParam.Value = department.ID;
+							nameParam.Value = department.Name;
+							fullNameParam.Value = department.FullName ?? (object)DBNull.Value;
 
-							int cnt = cmd.ExecuteNonQuery();
+							int cnt = await cmd.ExecuteNonQueryAsync();
 							if (cnt != 1)
 								throw new Exception($"Строка с названием={department.Name} не была обновлена");
 
@@ -191,9 +239,11 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
+				await transaction.CommitAsync();
+
 				ResultMessage message = new ResultMessage
 				{
-					Message = results.Count(a => !a.IsSuccess) == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results)}",
+					Message = results.Count(a => !a.IsSuccess) == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", results.Where(r => !r.IsSuccess).Select(r => r.Message))}",
 					IsSuccess = true,
 				};
 
@@ -201,6 +251,7 @@ namespace DocumentsFillerAPI.Providers
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				ResultMessage message = new ResultMessage
 				{
 					Message = ex.Message,
@@ -274,8 +325,8 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					var reader = cmd.ExecuteReader();
-					while (reader.Read())
+					var reader = await cmd.ExecuteReaderAsync();
+					if (await reader.ReadAsync())
 					{
 						results.Add(new DepartmentStruct
 						{
@@ -286,7 +337,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results.First());
+				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results.FirstOrDefault());
 			}
 			catch (Exception ex)
 			{

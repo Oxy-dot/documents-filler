@@ -39,9 +39,18 @@ namespace DocumentsFillerAPI.Providers
 
 		public async Task<ResultMessage> Insert(IEnumerable<BetStruct> bets)
 		{
+			var betsList = bets.ToList();
+			if (betsList.Count == 0)
+			{
+				return new ResultMessage() { Message = "Успешно", IsSuccess = true };
+			}
+
+			await using var dataSource = NpgsqlDataSource.Create(connectionString);
+			await using var connection = await dataSource.OpenConnectionAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
+
 			try
 			{
-				await using var dataSource = NpgsqlDataSource.Create(connectionString);
 				List<string> errors = new List<string>();
 
 				string sql =
@@ -50,21 +59,34 @@ namespace DocumentsFillerAPI.Providers
 					VALUES (@id, @bet, @hours_amount, @teacher_id, @department_id, @is_excessive);
 					";
 
-				await using (var cmd = dataSource.CreateCommand(sql))
+				await using (var cmd = new NpgsqlCommand(sql, connection, transaction))
 				{
-					foreach (BetStruct bet in bets)
+					var idParam = new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var betParam = new NpgsqlParameter("@bet", NpgsqlTypes.NpgsqlDbType.Double);
+					var hoursParam = new NpgsqlParameter("@hours_amount", NpgsqlTypes.NpgsqlDbType.Integer);
+					var teacherIdParam = new NpgsqlParameter("@teacher_id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var departmentIdParam = new NpgsqlParameter("@department_id", NpgsqlTypes.NpgsqlDbType.Uuid);
+					var isExcessiveParam = new NpgsqlParameter("@is_excessive", NpgsqlTypes.NpgsqlDbType.Boolean);
+
+					cmd.Parameters.Add(idParam);
+					cmd.Parameters.Add(betParam);
+					cmd.Parameters.Add(hoursParam);
+					cmd.Parameters.Add(teacherIdParam);
+					cmd.Parameters.Add(departmentIdParam);
+					cmd.Parameters.Add(isExcessiveParam);
+
+					foreach (BetStruct bet in betsList)
 					{
 						try
 						{
-							cmd.Parameters.Clear();
-							cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
-							cmd.Parameters.AddWithValue("@bet", bet.BetAmount);
-							cmd.Parameters.AddWithValue("@hours_amount", bet.HoursAmount);
-							cmd.Parameters.AddWithValue("@teacher_id", bet.TeacherID);
-							cmd.Parameters.AddWithValue("@department_id", bet.DepartmentID);
-							cmd.Parameters.AddWithValue("@is_excessive", bet.IsExcessive);
+							idParam.Value = Guid.NewGuid();
+							betParam.Value = bet.BetAmount;
+							hoursParam.Value = bet.HoursAmount;
+							teacherIdParam.Value = bet.TeacherID;
+							departmentIdParam.Value = bet.DepartmentID;
+							isExcessiveParam.Value = bet.IsExcessive;
 
-							int cnt = cmd.ExecuteNonQuery();
+							int cnt = await cmd.ExecuteNonQueryAsync();
 							if (cnt != 1)
 								//and bet = { bet.IsAdditional } and bet = { bet.IsExcessive }
 								throw new Exception($"Строка со ставкой={bet.BetAmount} и часовой ставкой={bet.HoursAmount} для учителя с ID={bet.TeacherID} не была добавлена");
@@ -76,12 +98,15 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
+				await transaction.CommitAsync();
+
 				string message = errors.Count == 0 ? "Успешно" : $"Успешно, но с ошибками\nОшибки: {string.Join(";\n", errors)}";
 
 				return new ResultMessage() { Message = message, IsSuccess = true };
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				return new ResultMessage() { Message = ex.Message, IsSuccess = false };
 			}
 		}
@@ -206,8 +231,8 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					var reader = cmd.ExecuteReader();
-					while (reader.Read())
+					var reader = await cmd.ExecuteReaderAsync();
+					while (await reader.ReadAsync())
 					{
 						results.Add(new BetStruct
 						{
@@ -254,8 +279,8 @@ namespace DocumentsFillerAPI.Providers
 
 				await using (var cmd = dataSource.CreateCommand(sql))
 				{
-					var reader = cmd.ExecuteReader();
-					while (reader.Read())
+					var reader = await cmd.ExecuteReaderAsync();
+					while (await reader.ReadAsync())
 					{
 						results.Add(new BetStruct
 						{
@@ -269,7 +294,7 @@ namespace DocumentsFillerAPI.Providers
 					}
 				}
 
-				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results.First());
+				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results.FirstOrDefault());
 			}
 			catch (Exception ex)
 			{

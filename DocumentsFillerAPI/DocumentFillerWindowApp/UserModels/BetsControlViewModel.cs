@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace DocumentFillerWindowApp.UserModels
@@ -58,7 +59,7 @@ namespace DocumentFillerWindowApp.UserModels
 			}
 		}
 
-		public void FindChangesAndUpdate()
+		public async Task FindChangesAndUpdate()
 		{
 			List<BetDisplayRecord> changes = new List<BetDisplayRecord>();
 
@@ -89,15 +90,16 @@ namespace DocumentFillerWindowApp.UserModels
 			var toUpdate = changes.Where(a => a.ID != Guid.Empty).ToList();
 
 			if (toInsert.Count > 0)
-				InsertBets(toInsert);
+				await InsertBets(toInsert);
 
 			if (toUpdate.Count > 0)
-				UpdateBets(toUpdate);
+				await UpdateBets(toUpdate);
 
 			UpdateBetsFromAPI();
+			_saveChangesShowButton = Visibility.Hidden;
 		}
 
-		public void InsertBets(List<BetDisplayRecord> recordsToInsert)
+		public async Task InsertBets(List<BetDisplayRecord> recordsToInsert)
 		{
 			var betsToInsert = recordsToInsert.Select(a => new BetRecord
 			{
@@ -108,14 +110,14 @@ namespace DocumentFillerWindowApp.UserModels
 				IsExcessive = a.IsExcessive
 			}).ToList();
 
-			var results = _betsAPI.Insert(betsToInsert).Result;
+			var results = await _betsAPI.Insert(betsToInsert);
 			if (results.Message != "Успешно")
 			{
 				MessageBox.Show(results.Message, "Ошибка вставки данных", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 		}
 
-		public void UpdateBets(List<BetDisplayRecord> recordsToUpdate)
+		public async Task UpdateBets(List<BetDisplayRecord> recordsToUpdate)
 		{
 			var betsToUpdate = recordsToUpdate.Select(a => new BetRecord
 			{
@@ -127,7 +129,7 @@ namespace DocumentFillerWindowApp.UserModels
 				IsExcessive = a.IsExcessive
 			}).ToList();
 
-			var results = _betsAPI.Update(betsToUpdate).Result;
+			var results = await _betsAPI.Update(betsToUpdate);
 			var errorResults = results.Messages.Where(a => !a.IsSuccess).ToList();
 
 			if (results.Message != "Успешно")
@@ -140,10 +142,10 @@ namespace DocumentFillerWindowApp.UserModels
 			}
 		}
 
-		public void Delete(List<BetDisplayRecord> recordsToDelete)
+		public async Task Delete(List<BetDisplayRecord> recordsToDelete)
 		{
 			var betsToDelete = recordsToDelete.Select(a => new BetRecord { ID = a.ID }).ToList();
-			var results = _betsAPI.Delete(betsToDelete).Result;
+			var results = await _betsAPI.Delete(betsToDelete);
 
 			if (!string.IsNullOrEmpty(results))
 				MessageBox.Show(results, "Ошибка при удалении", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -151,11 +153,11 @@ namespace DocumentFillerWindowApp.UserModels
 			UpdateBetsFromAPI();
 		}
 
-		private async void UpdateBetsFromAPI()
+		private void UpdateBetsFromAPI()
 		{
-			var betsResult = await _betsAPI.Get();
-			var teachersResult = await _teachersAPI.GetFullInfo();
-			var departmentsResult = await _departmentsAPI.Get();
+			var betsResult = _betsAPI.Get().Result;
+			var teachersResult = _teachersAPI.GetFullInfo().Result;
+			var departmentsResult = _departmentsAPI.Get().Result;
 
 			if (!string.IsNullOrEmpty(betsResult.Message))
 			{
@@ -205,6 +207,20 @@ namespace DocumentFillerWindowApp.UserModels
 			}).ToList();
 			Bets.CollectionChanged += OnCollectionChanged;
 			OnPropertyChanged("Bets");
+			
+			foreach (var bet in Bets)
+			{
+				bet.PropertyChanged += OnInternalPropertyChanged;
+			}
+		}
+
+		private void OnInternalPropertyChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			if (_saveChangesShowButton == Visibility.Hidden)
+			{
+				_saveChangesShowButton = Visibility.Visible;
+				OnPropertyChanged("SaveChangesShowButton");
+			}
 		}
 
 		private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -223,16 +239,82 @@ namespace DocumentFillerWindowApp.UserModels
 		}
 	}
 
-	public record BetDisplayRecord
+	public class BetDisplayRecord : INotifyPropertyChanged, ICloneable
 	{
 		public Guid ID { get; set; }
-		public double BetAmount { get; set; }
-		public int HoursAmount { get; set; }
-		public Guid TeacherID { get; set; }
-		public Guid DepartmentID { get; set; }
-		public bool IsExcessive { get; set; }
+		private double _betAmount;
+		public double BetAmount 
+		{ 
+			get => _betAmount; 
+			set
+			{
+				_betAmount = value;
+				OnPropertyChanged();
+			}
+		}
+		private int _hoursAmount;
+		public int HoursAmount 
+		{ 
+			get => _hoursAmount; 
+			set
+			{
+				_hoursAmount = value;
+				OnPropertyChanged();
+			}
+		}
+		private Guid _teacherID;
+		public Guid TeacherID 
+		{ 
+			get => _teacherID; 
+			set
+			{
+				_teacherID = value;
+				OnPropertyChanged();
+			}
+		}
+		private Guid _departmentID;
+		public Guid DepartmentID 
+		{ 
+			get => _departmentID; 
+			set
+			{
+				_departmentID = value;
+				OnPropertyChanged();
+			}
+		}
+		private bool _isExcessive;
+		public bool IsExcessive 
+		{ 
+			get => _isExcessive; 
+			set
+			{
+				_isExcessive = value;
+				OnPropertyChanged();
+			}
+		}
 		public string TeacherFullName { get; set; } = "";
 		public string DepartmentName { get; set; } = "";
+
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		public object Clone()
+		{
+			return new BetDisplayRecord
+			{
+				ID = this.ID,
+				BetAmount = this.BetAmount,
+				HoursAmount = this.HoursAmount,
+				TeacherID = this.TeacherID,
+				DepartmentID = this.DepartmentID,
+				IsExcessive = this.IsExcessive,
+				TeacherFullName = this.TeacherFullName,
+				DepartmentName = this.DepartmentName
+			};
+		}
 	}
 }
 
