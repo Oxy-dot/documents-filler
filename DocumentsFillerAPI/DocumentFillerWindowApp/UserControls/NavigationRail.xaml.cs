@@ -1,23 +1,10 @@
 ﻿using DocumentFillerWindowApp.ModalWindows;
 using MaterialDesignThemes.Wpf;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace DocumentFillerWindowApp.UserControls
 {
@@ -49,83 +36,10 @@ namespace DocumentFillerWindowApp.UserControls
 			InitializeComponent();
 			DataContext = this;
 
-			// Initialize navigation items with Material Design icons
-			NavigationItems = new ObservableCollection<NavigationRailItem>()
-			{
-				new NavigationRailItem 
-				{ 
-					Title = "Преподаватели", 
-					IconKind = PackIconKind.AccountGroup,
-					Id = "Teachers"
-				},
-				new NavigationRailItem 
-				{ 
-					Title = "Должности", 
-					IconKind = PackIconKind.BadgeAccount,
-					Id = "AcademicTitles"
-				},
-				new NavigationRailItem 
-				{ 
-					Title = "Кафедры", 
-					IconKind = PackIconKind.OfficeBuilding,
-					Id = "Departments"
-				},
-				new NavigationRailItem 
-				{ 
-					Title = "Ставки преподавателей", 
-					IconKind = PackIconKind.Calculator,
-					Id = "Bets"
-				},
-				new NavigationRailItem
-				{
-					Title = "Файлы",
-					IconKind = PackIconKind.Folder,
-					Id = "Files"
-				},
-				new NavigationRailItem
-				{
-					Title = "Создать штатное расписание",
-					IconKind = PackIconKind.ClipboardText,
-					Id = "CreateStaffingTable"
-				},
-				new NavigationRailItem
-				{
-					Title = "Создать служебную записку",
-					IconKind = PackIconKind.ClipboardText,
-					Id = "CreateServiceMemoTable"
-				},
-				//new NavigationRailItem
-				//{
-				//	Title = "Парсить PPS файл",
-				//	IconKind = PackIconKind.FileExcel,
-				//	Id = "ParsePPSFile"
-				//},
-			};
-
-			FileNavigatonItems = new ObservableCollection<NavigationRailItem>()
-			{
-				new NavigationRailItem
-				{
-					Title = "Файлы"
-				},
-				new NavigationRailItem
-				{
-					Title = "Добавить новый файл"
-				}
-			};
-
 			// Select first item by default
 			if (NavigationItems.Count > 0)
 			{
 				SelectedItem = NavigationItems[0];
-			}
-		}
-
-		private void NavigationListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		{
-			if (NavigationListBox.SelectedItem is NavigationRailItem item)
-			{
-				SelectedItem = item;
 			}
 		}
 
@@ -135,18 +49,6 @@ namespace DocumentFillerWindowApp.UserControls
 			{
 				ItemSelected?.Invoke(this, SelectedItem);
 			}
-		}
-
-		private void MenuButton_Click(object sender, RoutedEventArgs e)
-		{
-			// Toggle text visibility for all items
-			bool isTextVisible = NavigationRailAssist.GetIsTextVisible(NavigationListBox);
-			NavigationRailAssist.SetIsTextVisible(NavigationListBox, !isTextVisible);
-		}
-
-		private void SettingsButton_Click(object sender, RoutedEventArgs e)
-		{
-			MessageBox.Show("Settings clicked!", "Navigation Rail", MessageBoxButton.OK, MessageBoxImage.Information);
 		}
 
 		protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -165,7 +67,67 @@ namespace DocumentFillerWindowApp.UserControls
 
 		private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
 		{
-
+			if (e.NewValue is not StackPanel)
+				return;
+			switch ((e.NewValue as StackPanel)!.Name)
+			{
+				case "Teachers":
+					SelectedItem = new NavigationRailItem
+					{
+						Title = "Преподаватели",
+						IconKind = PackIconKind.AccountGroup,
+						Id = "Teachers"
+					};
+					break;
+				case "AcademicTitles":
+					SelectedItem = new NavigationRailItem
+					{
+						Title = "Должности",
+						IconKind = PackIconKind.BadgeAccount,
+						Id = "AcademicTitles"
+					};
+					break;
+				case "Departments":
+					SelectedItem = new NavigationRailItem
+					{
+						Title = "Кафедры",
+						IconKind = PackIconKind.OfficeBuilding,
+						Id = "Departments"
+					};
+					break;
+				case "Bets":
+					SelectedItem = new NavigationRailItem
+					{
+						Title = "Ставки преподавателей",
+						IconKind = PackIconKind.Calculator,
+						Id = "Bets"
+					};
+					break;
+				case "Files":
+					SelectedItem = new NavigationRailItem
+					{
+						Title = "Файлы",
+						IconKind = PackIconKind.Folder,
+						Id = "Files"
+					};
+					break;
+				case "CreateStaffingTable":
+					SelectedItem = new NavigationRailItem
+					{
+						Title = "Создать штатное расписание",
+						IconKind = PackIconKind.ClipboardText,
+						Id = "CreateStaffingTable"
+					};
+					break;
+				case "CreateServiceMemoTable":
+					SelectedItem = new NavigationRailItem
+					{
+						Title = "Создать служебную записку",
+						IconKind = PackIconKind.ClipboardText,
+						Id = "CreateServiceMemoTable"
+					};
+					break;
+			}
 		}
 	}
 

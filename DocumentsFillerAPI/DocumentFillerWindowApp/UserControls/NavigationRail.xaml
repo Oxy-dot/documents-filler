@@ -22,58 +22,25 @@
                 <StackPanel x:Name="AcademicTitles">
                     <TextBlock>Должности</TextBlock>
                 </StackPanel>
-                <StackPanel x:Name="">
+                <StackPanel x:Name="Departments">
                     <TextBlock>Кафедры</TextBlock>
                 </StackPanel>
             </TreeViewItem>
             <TreeViewItem Header="Создать документ">
-                <StackPanel x:Name="Test4">
+                <StackPanel x:Name="CreateStaffingTable">
                     <TextBlock>Создать штатное расписание</TextBlock>
                 </StackPanel>
-                <StackPanel x:Name="Test5">
+                <StackPanel x:Name="CreateServiceMemoTable">
                     <TextBlock>Создать служебную записку</TextBlock>
                 </StackPanel>
             </TreeViewItem>
-            <StackPanel>
+            <StackPanel x:Name="Bets">
                 <TextBlock>Ставки преподавателей</TextBlock>
             </StackPanel>
-            <StackPanel>
+            <StackPanel x:Name="Files">
                 <TextBlock>Журнал документов</TextBlock>
             </StackPanel>
         </TreeView>
-        <ListBox Grid.Row="1" 
-                 x:Name="NavigationListBox"
-                 ItemsSource="{Binding NavigationItems}"
-                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                 SelectionChanged="NavigationListBox_SelectionChanged"
-                 BorderThickness="0"
-                 Background="Transparent"
-                 materialDesign:NavigationRailAssist.IsTextVisible="True"
-                 materialDesign:NavigationRailAssist.ShowSelectionBackground="False"
-                 materialDesign:NavigationRailAssist.SelectionCornerRadius="0">
-            <ListBox.ItemContainerStyle>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    <Setter Property="VerticalContentAlignment" Value="Center"/>
-                    <Setter Property="materialDesign:NavigationRailAssist.SelectedIcon" Value="None" />
-                    <Setter Property="materialDesign:NavigationRailAssist.UnselectedIcon" Value="None" />
-                    <Setter Property="materialDesign:NavigationRailAssist.ShowSelectionBackground" Value="False"/>
-                    <Setter Property="materialDesign:NavigationRailAssist.IsTextVisible" Value="True" />
-                    <Setter Property="Width" Value="auto" />
-                </Style>
-            </ListBox.ItemContainerStyle>
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Margin="10px" Orientation="Horizontal" 
-                                HorizontalAlignment="Center">
-                        <TextBlock Text="{Binding Title}" 
-                                   VerticalAlignment="Center"
-                                   FontSize="14"
-                                   x:Name="ItemText"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
         <StackPanel Grid.Row="2" Margin="0,8,0,16" HorizontalAlignment="Center">
             <Button Margin="5"
                     Click="Button_Click">

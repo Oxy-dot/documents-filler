@@ -237,7 +237,7 @@ namespace DocumentsFillerAPI.Providers
 						});
 					}
 				}
-
+				results.RemoveAll(a => a.HoursAmount < 0 || a.BetAmount < 0);
 				return (new ResultMessage() { IsSuccess = true, Message = "Успешно" }, results);
 			}
 			catch (Exception ex)
