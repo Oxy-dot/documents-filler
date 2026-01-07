@@ -13,6 +13,34 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <TreeView
+            SelectedItemChanged="TreeView_SelectedItemChanged">
+            <TreeViewItem Header="Справочники">
+                <StackPanel x:Name="Teachers">
+                    <TextBlock>Преподаватели</TextBlock>
+                </StackPanel>
+                <StackPanel x:Name="AcademicTitles">
+                    <TextBlock>Должности</TextBlock>
+                </StackPanel>
+                <StackPanel x:Name="">
+                    <TextBlock>Кафедры</TextBlock>
+                </StackPanel>
+            </TreeViewItem>
+            <TreeViewItem Header="Создать документ">
+                <StackPanel x:Name="Test4">
+                    <TextBlock>Создать штатное расписание</TextBlock>
+                </StackPanel>
+                <StackPanel x:Name="Test5">
+                    <TextBlock>Создать служебную записку</TextBlock>
+                </StackPanel>
+            </TreeViewItem>
+            <StackPanel>
+                <TextBlock>Ставки преподавателей</TextBlock>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock>Журнал документов</TextBlock>
+            </StackPanel>
+        </TreeView>
         <ListBox Grid.Row="1" 
                  x:Name="NavigationListBox"
                  ItemsSource="{Binding NavigationItems}"

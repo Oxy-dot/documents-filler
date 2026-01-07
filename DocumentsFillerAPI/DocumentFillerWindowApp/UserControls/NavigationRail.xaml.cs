@@ -162,7 +162,12 @@ namespace DocumentFillerWindowApp.UserControls
 			};
 			window.ShowDialog();
 		}
-    }
+
+		private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+		{
+
+		}
+	}
 
 	public class NavigationRailItem : INotifyPropertyChanged
 	{

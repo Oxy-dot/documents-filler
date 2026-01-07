@@ -69,6 +69,8 @@ namespace DocumentsFillerAPI.ExcelHelper
 						});
 					});
 
+					rows.RemoveAll(a => a.MainBet < 0 || a.MainBetHours < 0 || a.ExcessibeBet < 0 || a.ExcessiveBetHours < 0);
+
 					return (string.Join("\r\n", allErrors), rows);
 				}
 			}
